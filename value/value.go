@@ -1,5 +1,7 @@
 package value
 
+import "fmt"
+
 type Value interface {
 	// какой бы тип ни был у значения,
 	//он должен быть конвертируемым в любой другой тип
@@ -14,6 +16,9 @@ type Value interface {
 	IsInt() bool
 	IsReal() bool
 	IsText() bool
+	IsNull() bool
+
+	fmt.Stringer
 }
 
 func Int(v int64) Value { return newInteger(v) }
@@ -21,3 +26,5 @@ func Int(v int64) Value { return newInteger(v) }
 func Real(v float64) Value { return newReal(v) }
 
 func Text(v string) Value { return newText(v) }
+
+func Null() Value { return newNull() }

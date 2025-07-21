@@ -1,6 +1,9 @@
 package value
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 type real struct{ v float64 }
 
@@ -19,5 +22,9 @@ func (r real) IsInt() bool { return false }
 func (r real) IsReal() bool { return true }
 
 func (r real) IsText() bool { return false }
+
+func (r real) IsNull() bool { return false }
+
+func (r real) String() string { return fmt.Sprintf("real %f", r.v) }
 
 var _ Value = real{}

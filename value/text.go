@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"strconv"
 	"unicode"
 )
@@ -87,6 +88,10 @@ func (t text) IsReal() bool {
 }
 
 func (t text) IsText() bool { return true }
+
+func (t text) IsNull() bool { return false }
+
+func (t text) String() string { return fmt.Sprintf("text %s", t.v) }
 
 var _ Value = text{}
 

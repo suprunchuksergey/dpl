@@ -1,6 +1,9 @@
 package value
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 type integer struct{ v int64 }
 
@@ -17,5 +20,9 @@ func (i integer) IsInt() bool { return true }
 func (i integer) IsReal() bool { return false }
 
 func (i integer) IsText() bool { return false }
+
+func (i integer) IsNull() bool { return false }
+
+func (i integer) String() string { return fmt.Sprintf("int %d", i.v) }
 
 var _ Value = integer{}
