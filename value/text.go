@@ -49,6 +49,8 @@ func (t text) Real() float64 {
 
 func (t text) Text() string { return t.v }
 
+func (t text) Bool() bool { return len(t.v) != 0 }
+
 func (t text) IsInt() bool {
 	var index int
 	if t.skipSpaces(&index) {
@@ -88,6 +90,8 @@ func (t text) IsReal() bool {
 }
 
 func (t text) IsText() bool { return true }
+
+func (t text) IsBool() bool { return false }
 
 func (t text) IsNull() bool { return false }
 

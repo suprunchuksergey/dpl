@@ -17,11 +17,15 @@ func (r real) Text() string {
 	return strconv.FormatFloat(r.v, 'g', -1, 64)
 }
 
+func (r real) Bool() bool { return r.v != 0 }
+
 func (r real) IsInt() bool { return false }
 
 func (r real) IsReal() bool { return true }
 
 func (r real) IsText() bool { return false }
+
+func (r real) IsBool() bool { return false }
 
 func (r real) IsNull() bool { return false }
 

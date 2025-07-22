@@ -203,3 +203,21 @@ func Test_text_IsReal(t *testing.T) {
 		}
 	}
 }
+
+func Test_text_Bool(t *testing.T) {
+	tests := []struct {
+		data     string
+		expected bool
+	}{
+		{"64", true},
+		{"data", true},
+		{"", false},
+	}
+
+	for i, test := range tests {
+		if newText(test.data).Bool() != test.expected {
+			t.Errorf("%d: %q: ожидалось %t, получено %t",
+				i, test.data, test.expected, !test.expected)
+		}
+	}
+}

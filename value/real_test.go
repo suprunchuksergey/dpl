@@ -53,3 +53,28 @@ func Test_real_Text(t *testing.T) {
 		}
 	}
 }
+
+func Test_real_Bool(t *testing.T) {
+	tests := []struct {
+		data     float64
+		expected bool
+	}{
+		{64, true},
+		{64.64, true},
+		{-64.64, true},
+		{-.64, true},
+		{.64, true},
+		{.0001, true},
+		{0, false},
+		{.0, false},
+		{0., false},
+	}
+
+	for i, test := range tests {
+		got := newReal(test.data).Bool()
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %t, получено %t",
+				i, test.expected, got)
+		}
+	}
+}

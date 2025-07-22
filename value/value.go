@@ -10,12 +10,14 @@ type Value interface {
 	Int() int64
 	Real() float64
 	Text() string
+	Bool() bool
 
 	//узнать, является ли значение каким-то типом
 
 	IsInt() bool
 	IsReal() bool
 	IsText() bool
+	IsBool() bool
 	IsNull() bool
 
 	fmt.Stringer
@@ -28,3 +30,14 @@ func Real(v float64) Value { return newReal(v) }
 func Text(v string) Value { return newText(v) }
 
 func Null() Value { return newNull() }
+
+func True() Value { return newTrue() }
+
+func False() Value { return newFalse() }
+
+func Bool(v bool) Value {
+	if v {
+		return newTrue()
+	}
+	return newFalse()
+}

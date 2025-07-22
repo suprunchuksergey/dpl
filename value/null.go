@@ -10,11 +10,15 @@ func (n null) Real() float64 { panic("невозможно преобразов�
 
 func (n null) Text() string { panic("невозможно преобразовать null в text") }
 
+func (n null) Bool() bool { return false }
+
 func (n null) IsInt() bool { return false }
 
 func (n null) IsReal() bool { return false }
 
 func (n null) IsText() bool { return false }
+
+func (n null) IsBool() bool { return false }
 
 func (n null) IsNull() bool { return true }
 

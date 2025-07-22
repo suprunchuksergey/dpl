@@ -45,3 +45,24 @@ func Test_integer_Text(t *testing.T) {
 		}
 	}
 }
+
+func Test_integer_Bool(t *testing.T) {
+	tests := []struct {
+		data     int64
+		expected bool
+	}{
+		{data: 64, expected: true},
+		{data: -128, expected: true},
+		{data: -1, expected: true},
+		{data: 1, expected: true},
+		{data: 0, expected: false},
+	}
+
+	for i, test := range tests {
+		got := newInteger(test.data).Bool()
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %t, получено %t",
+				i, test.expected, got)
+		}
+	}
+}
