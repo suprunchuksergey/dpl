@@ -62,10 +62,7 @@ func Eq(a, b value.Value) value.Value {
 	if a.IsText() && b.IsText() {
 		return value.Bool(a.Text() == b.Text())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Bool(a.Real() == b.Real())
-	}
-	return value.Bool(a.Int() == b.Int())
+	return value.Bool(a.Real() == b.Real())
 }
 
 func Neq(a, b value.Value) value.Value {
@@ -75,10 +72,7 @@ func Neq(a, b value.Value) value.Value {
 	if a.IsText() && b.IsText() {
 		return value.Bool(a.Text() != b.Text())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Bool(a.Real() != b.Real())
-	}
-	return value.Bool(a.Int() != b.Int())
+	return value.Bool(a.Real() != b.Real())
 }
 
 func Lt(a, b value.Value) value.Value {
@@ -88,10 +82,7 @@ func Lt(a, b value.Value) value.Value {
 	if a.IsText() && b.IsText() {
 		return value.Bool(a.Text() < b.Text())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Bool(a.Real() < b.Real())
-	}
-	return value.Bool(a.Int() < b.Int())
+	return value.Bool(a.Real() < b.Real())
 }
 
 func Lte(a, b value.Value) value.Value {
@@ -101,10 +92,7 @@ func Lte(a, b value.Value) value.Value {
 	if a.IsText() && b.IsText() {
 		return value.Bool(a.Text() <= b.Text())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Bool(a.Real() <= b.Real())
-	}
-	return value.Bool(a.Int() <= b.Int())
+	return value.Bool(a.Real() <= b.Real())
 }
 
 func Gt(a, b value.Value) value.Value {
@@ -114,10 +102,7 @@ func Gt(a, b value.Value) value.Value {
 	if a.IsText() && b.IsText() {
 		return value.Bool(a.Text() > b.Text())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Bool(a.Real() > b.Real())
-	}
-	return value.Bool(a.Int() > b.Int())
+	return value.Bool(a.Real() > b.Real())
 }
 
 func Gte(a, b value.Value) value.Value {
@@ -127,8 +112,5 @@ func Gte(a, b value.Value) value.Value {
 	if a.IsText() && b.IsText() {
 		return value.Bool(a.Text() >= b.Text())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Bool(a.Real() >= b.Real())
-	}
-	return value.Bool(a.Int() >= b.Int())
+	return value.Bool(a.Real() >= b.Real())
 }
