@@ -638,3 +638,28 @@ func Test_Gte(t *testing.T) {
 		}
 	}
 }
+
+func Test_Concat(t *testing.T) {
+	tests := []struct {
+		a,
+		b,
+		expected value.Value
+	}{
+		{value.Int(69), value.Int(512), value.Text("69512")},
+		{value.Int(69), value.Real(512.69), value.Text("69512.69")},
+		{value.Int(69), value.Text("512.69"), value.Text("69512.69")},
+		{value.Int(0), value.True(), value.Text("0true")},
+		{value.Text("hello "), value.Text("world"), value.Text("hello world")},
+		{value.Int(69), value.Null(), value.Null()},
+		{value.True(), value.False(), value.Text("truefalse")},
+		{value.Real(512.512), value.Real(512.512), value.Text("512.512512.512")},
+	}
+
+	for i, test := range tests {
+		got := Concat(test.a, test.b)
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, got)
+		}
+	}
+}

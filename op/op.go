@@ -114,3 +114,10 @@ func Gte(a, b value.Value) value.Value {
 	}
 	return value.Bool(a.Real() >= b.Real())
 }
+
+func Concat(a, b value.Value) value.Value {
+	if a.IsNull() || b.IsNull() {
+		return value.Null()
+	}
+	return value.Text(a.Text() + b.Text())
+}
