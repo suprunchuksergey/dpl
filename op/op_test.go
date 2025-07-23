@@ -431,3 +431,210 @@ func Test_Rem(t *testing.T) {
 		}
 	}
 }
+
+func Test_Eq(t *testing.T) {
+	tests := []struct {
+		a,
+		b,
+		expected value.Value
+	}{
+		{value.Int(69), value.Int(69), value.True()},
+		{value.Int(69), value.Real(69), value.True()},
+		{value.Int(69), value.Text("69"), value.True()},
+		{value.Int(1), value.True(), value.True()},
+		{value.Int(0), value.False(), value.True()},
+		{value.Text("text"), value.Text("text"), value.True()},
+		{value.Real(69.69), value.Real(69.69), value.True()},
+		{value.Real(69.69), value.Text("69.69"), value.True()},
+		{value.Real(-69.69), value.Text("-69.69text"), value.True()},
+
+		{value.Real(69.69), value.Int(69), value.False()},
+		{value.True(), value.False(), value.False()},
+		{value.Text("text"), value.Int(69), value.False()},
+		{value.Text("text"), value.Text("value"), value.False()},
+
+		{value.Text("text"), value.Null(), value.Null()},
+	}
+
+	for i, test := range tests {
+		got := Eq(test.a, test.b)
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, got)
+		}
+	}
+}
+
+func Test_Neq(t *testing.T) {
+	tests := []struct {
+		a,
+		b,
+		expected value.Value
+	}{
+		{value.Int(69), value.Int(69), value.False()},
+		{value.Int(69), value.Real(69), value.False()},
+		{value.Int(69), value.Text("69"), value.False()},
+		{value.Int(1), value.True(), value.False()},
+		{value.Int(0), value.False(), value.False()},
+		{value.Text("text"), value.Text("text"), value.False()},
+		{value.Real(69.69), value.Real(69.69), value.False()},
+		{value.Real(69.69), value.Text("69.69"), value.False()},
+		{value.Real(-69.69), value.Text("-69.69text"), value.False()},
+
+		{value.Real(69.69), value.Int(69), value.True()},
+		{value.True(), value.False(), value.True()},
+		{value.Text("text"), value.Int(69), value.True()},
+		{value.Text("text"), value.Text("value"), value.True()},
+
+		{value.Text("text"), value.Null(), value.Null()},
+	}
+
+	for i, test := range tests {
+		got := Neq(test.a, test.b)
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, got)
+		}
+	}
+}
+
+func Test_Lt(t *testing.T) {
+	tests := []struct {
+		a,
+		b,
+		expected value.Value
+	}{
+		{value.Int(69), value.Int(512), value.True()},
+		{value.Int(69), value.Real(512.69), value.True()},
+		{value.Int(69), value.Text("512.69"), value.True()},
+		{value.Int(0), value.True(), value.True()},
+		{value.Text("text"), value.Text("value"), value.True()},
+
+		{value.Int(69), value.Null(), value.Null()},
+
+		{value.Int(512), value.Int(69), value.False()},
+		{value.Real(512.69), value.Int(69), value.False()},
+		{value.Text("512.69"), value.Int(69), value.False()},
+		{value.Int(1), value.True(), value.False()},
+		{value.Text("value"), value.Text("text"), value.False()},
+
+		{value.Int(512), value.Int(512), value.False()},
+		{value.Real(512.512), value.Real(512.512), value.False()},
+
+		{value.False(), value.True(), value.True()},
+
+		{value.Text("text"), value.True(), value.True()},
+		{value.Text("1text"), value.True(), value.False()},
+	}
+
+	for i, test := range tests {
+		got := Lt(test.a, test.b)
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, got)
+		}
+	}
+}
+
+func Test_Lte(t *testing.T) {
+	tests := []struct {
+		a,
+		b,
+		expected value.Value
+	}{
+		{value.Int(69), value.Int(512), value.True()},
+		{value.Int(69), value.Real(512.69), value.True()},
+		{value.Int(69), value.Text("512.69"), value.True()},
+		{value.Int(0), value.True(), value.True()},
+		{value.Text("text"), value.Text("value"), value.True()},
+
+		{value.Int(69), value.Null(), value.Null()},
+
+		{value.Int(512), value.Int(69), value.False()},
+		{value.Real(512.69), value.Int(69), value.False()},
+		{value.Text("512.69"), value.Int(69), value.False()},
+		{value.Int(1), value.True(), value.True()},
+		{value.Text("value"), value.Text("text"), value.False()},
+
+		{value.Int(512), value.Int(512), value.True()},
+		{value.Real(512.512), value.Real(512.512), value.True()},
+
+		{value.Text("1text"), value.True(), value.True()},
+	}
+
+	for i, test := range tests {
+		got := Lte(test.a, test.b)
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, got)
+		}
+	}
+}
+
+func Test_Gt(t *testing.T) {
+	tests := []struct {
+		a,
+		b,
+		expected value.Value
+	}{
+		{value.Int(69), value.Int(512), value.False()},
+		{value.Int(69), value.Real(512.69), value.False()},
+		{value.Int(69), value.Text("512.69"), value.False()},
+		{value.Int(0), value.True(), value.False()},
+		{value.Text("text"), value.Text("value"), value.False()},
+
+		{value.Int(69), value.Null(), value.Null()},
+
+		{value.Int(512), value.Int(69), value.True()},
+		{value.Real(512.69), value.Int(69), value.True()},
+		{value.Text("512.69"), value.Int(69), value.True()},
+		{value.Int(1), value.True(), value.False()},
+		{value.Text("value"), value.Text("text"), value.True()},
+
+		{value.Int(512), value.Int(512), value.False()},
+		{value.Real(512.512), value.Real(512.512), value.False()},
+
+		{value.True(), value.False(), value.True()},
+	}
+
+	for i, test := range tests {
+		got := Gt(test.a, test.b)
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, got)
+		}
+	}
+}
+
+func Test_Gte(t *testing.T) {
+	tests := []struct {
+		a,
+		b,
+		expected value.Value
+	}{
+		{value.Int(69), value.Int(512), value.False()},
+		{value.Int(69), value.Real(512.69), value.False()},
+		{value.Int(69), value.Text("512.69"), value.False()},
+		{value.Int(0), value.True(), value.False()},
+		{value.Text("text"), value.Text("value"), value.False()},
+
+		{value.Int(69), value.Null(), value.Null()},
+
+		{value.Int(512), value.Int(69), value.True()},
+		{value.Real(512.69), value.Int(69), value.True()},
+		{value.Text("512.69"), value.Int(69), value.True()},
+		{value.Int(1), value.True(), value.True()},
+		{value.Text("value"), value.Text("text"), value.True()},
+
+		{value.Int(512), value.Int(512), value.True()},
+		{value.Real(512.512), value.Real(512.512), value.True()},
+	}
+
+	for i, test := range tests {
+		got := Gte(test.a, test.b)
+		if got != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, got)
+		}
+	}
+}

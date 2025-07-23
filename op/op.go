@@ -54,3 +54,81 @@ func Rem(a, b value.Value) value.Value {
 	}
 	return value.Int(a.Int() % b.Int())
 }
+
+func Eq(a, b value.Value) value.Value {
+	if a.IsNull() || b.IsNull() {
+		return value.Null()
+	}
+	if a.IsText() && b.IsText() {
+		return value.Bool(a.Text() == b.Text())
+	}
+	if a.IsReal() || b.IsReal() {
+		return value.Bool(a.Real() == b.Real())
+	}
+	return value.Bool(a.Int() == b.Int())
+}
+
+func Neq(a, b value.Value) value.Value {
+	if a.IsNull() || b.IsNull() {
+		return value.Null()
+	}
+	if a.IsText() && b.IsText() {
+		return value.Bool(a.Text() != b.Text())
+	}
+	if a.IsReal() || b.IsReal() {
+		return value.Bool(a.Real() != b.Real())
+	}
+	return value.Bool(a.Int() != b.Int())
+}
+
+func Lt(a, b value.Value) value.Value {
+	if a.IsNull() || b.IsNull() {
+		return value.Null()
+	}
+	if a.IsText() && b.IsText() {
+		return value.Bool(a.Text() < b.Text())
+	}
+	if a.IsReal() || b.IsReal() {
+		return value.Bool(a.Real() < b.Real())
+	}
+	return value.Bool(a.Int() < b.Int())
+}
+
+func Lte(a, b value.Value) value.Value {
+	if a.IsNull() || b.IsNull() {
+		return value.Null()
+	}
+	if a.IsText() && b.IsText() {
+		return value.Bool(a.Text() <= b.Text())
+	}
+	if a.IsReal() || b.IsReal() {
+		return value.Bool(a.Real() <= b.Real())
+	}
+	return value.Bool(a.Int() <= b.Int())
+}
+
+func Gt(a, b value.Value) value.Value {
+	if a.IsNull() || b.IsNull() {
+		return value.Null()
+	}
+	if a.IsText() && b.IsText() {
+		return value.Bool(a.Text() > b.Text())
+	}
+	if a.IsReal() || b.IsReal() {
+		return value.Bool(a.Real() > b.Real())
+	}
+	return value.Bool(a.Int() > b.Int())
+}
+
+func Gte(a, b value.Value) value.Value {
+	if a.IsNull() || b.IsNull() {
+		return value.Null()
+	}
+	if a.IsText() && b.IsText() {
+		return value.Bool(a.Text() >= b.Text())
+	}
+	if a.IsReal() || b.IsReal() {
+		return value.Bool(a.Real() >= b.Real())
+	}
+	return value.Bool(a.Int() >= b.Int())
+}
