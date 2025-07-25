@@ -1,123 +1,104 @@
 package op
 
 import (
-	"github.com/suprunchuksergey/dpl/value"
+	"github.com/suprunchuksergey/dpl/val"
 	"math"
 )
 
-func Add(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+type h func(a, b val.Val) val.Val
+
+func check(f h) h {
+	return func(a, b val.Val) val.Val {
+		if val.IsNull(a) || val.IsNull(b) {
+			return val.Null()
+		}
+		return f(a, b)
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Real(a.Real() + b.Real())
-	}
-	return value.Int(a.Int() + b.Int())
 }
 
-func Sub(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Add = check(func(a, b val.Val) val.Val {
+	if val.IsReal(a) || val.IsReal(b) {
+		return val.Real(a.Real() + b.Real())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Real(a.Real() - b.Real())
-	}
-	return value.Int(a.Int() - b.Int())
-}
+	return val.Int(a.Int() + b.Int())
+})
 
-func Mul(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Sub = check(func(a, b val.Val) val.Val {
+	if val.IsReal(a) || val.IsReal(b) {
+		return val.Real(a.Real() - b.Real())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Real(a.Real() * b.Real())
-	}
-	return value.Int(a.Int() * b.Int())
-}
+	return val.Int(a.Int() - b.Int())
+})
 
-func Div(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() || b.Real() == 0 {
-		return value.Null()
+var Mul = check(func(a, b val.Val) val.Val {
+	if val.IsReal(a) || val.IsReal(b) {
+		return val.Real(a.Real() * b.Real())
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Real(a.Real() / b.Real())
-	}
-	return value.Int(a.Int() / b.Int())
-}
+	return val.Int(a.Int() * b.Int())
+})
 
-func Rem(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() || b.Real() == 0 {
-		return value.Null()
+var Div = check(func(a, b val.Val) val.Val {
+	if b.Real() == 0 {
+		return val.Null()
 	}
-	if a.IsReal() || b.IsReal() {
-		return value.Real(math.Mod(a.Real(), b.Real()))
+	if val.IsReal(a) || val.IsReal(b) {
+		return val.Real(a.Real() / b.Real())
 	}
-	return value.Int(a.Int() % b.Int())
-}
+	return val.Int(a.Int() / b.Int())
+})
 
-func Eq(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Rem = check(func(a, b val.Val) val.Val {
+	if b.Real() == 0 {
+		return val.Null()
 	}
-	if a.IsText() && b.IsText() {
-		return value.Bool(a.Text() == b.Text())
+	if val.IsReal(a) || val.IsReal(b) {
+		return val.Real(math.Mod(a.Real(), b.Real()))
 	}
-	return value.Bool(a.Real() == b.Real())
-}
+	return val.Int(a.Int() % b.Int())
+})
 
-func Neq(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Eq = check(func(a, b val.Val) val.Val {
+	if val.IsText(a) && val.IsText(b) {
+		return val.Bool(a.Text() == b.Text())
 	}
-	if a.IsText() && b.IsText() {
-		return value.Bool(a.Text() != b.Text())
-	}
-	return value.Bool(a.Real() != b.Real())
-}
+	return val.Bool(a.Real() == b.Real())
+})
 
-func Lt(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Neq = check(func(a, b val.Val) val.Val {
+	if val.IsText(a) && val.IsText(b) {
+		return val.Bool(a.Text() != b.Text())
 	}
-	if a.IsText() && b.IsText() {
-		return value.Bool(a.Text() < b.Text())
-	}
-	return value.Bool(a.Real() < b.Real())
-}
+	return val.Bool(a.Real() != b.Real())
+})
 
-func Lte(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Lt = check(func(a, b val.Val) val.Val {
+	if val.IsText(a) && val.IsText(b) {
+		return val.Bool(a.Text() < b.Text())
 	}
-	if a.IsText() && b.IsText() {
-		return value.Bool(a.Text() <= b.Text())
-	}
-	return value.Bool(a.Real() <= b.Real())
-}
+	return val.Bool(a.Real() < b.Real())
+})
 
-func Gt(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Lte = check(func(a, b val.Val) val.Val {
+	if val.IsText(a) && val.IsText(b) {
+		return val.Bool(a.Text() <= b.Text())
 	}
-	if a.IsText() && b.IsText() {
-		return value.Bool(a.Text() > b.Text())
-	}
-	return value.Bool(a.Real() > b.Real())
-}
+	return val.Bool(a.Real() <= b.Real())
+})
 
-func Gte(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Gt = check(func(a, b val.Val) val.Val {
+	if val.IsText(a) && val.IsText(b) {
+		return val.Bool(a.Text() > b.Text())
 	}
-	if a.IsText() && b.IsText() {
-		return value.Bool(a.Text() >= b.Text())
-	}
-	return value.Bool(a.Real() >= b.Real())
-}
+	return val.Bool(a.Real() > b.Real())
+})
 
-func Concat(a, b value.Value) value.Value {
-	if a.IsNull() || b.IsNull() {
-		return value.Null()
+var Gte = check(func(a, b val.Val) val.Val {
+	if val.IsText(a) && val.IsText(b) {
+		return val.Bool(a.Text() >= b.Text())
 	}
-	return value.Text(a.Text() + b.Text())
-}
+	return val.Bool(a.Real() >= b.Real())
+})
+
+var Concat = check(func(a, b val.Val) val.Val {
+	return val.Text(a.Text() + b.Text())
+})
