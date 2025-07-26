@@ -11,7 +11,7 @@ type row struct {
 
 type rows []row
 
-func (rows rows) exec(t *testing.T, f h) {
+func (rows rows) exec(t *testing.T, f Op) {
 	for i, r := range rows {
 		v := f(r.a, r.b)
 		if v != r.expected {

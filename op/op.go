@@ -5,9 +5,9 @@ import (
 	"math"
 )
 
-type h func(a, b val.Val) val.Val
+type Op func(a, b val.Val) val.Val
 
-func check(f h) h {
+func check(f Op) Op {
 	return func(a, b val.Val) val.Val {
 		if val.IsNull(a) || val.IsNull(b) {
 			return val.Null()
