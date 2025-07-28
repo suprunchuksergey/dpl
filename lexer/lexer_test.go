@@ -1149,6 +1149,46 @@ func Test_Next(t *testing.T) {
 	}
 }
 
+func Test_Next_ids_only(t *testing.T) {
+	tests := []struct {
+		data     string
+		expected []uint8
+	}{
+		{"\n\n\n(9\n+27)	 *\n(\n\n(	 51.2-.2\n) /\n5)", []uint8{
+			token.LParen, token.Int, token.Add, token.Int, token.RParen,
+			token.Mul, token.LParen, token.LParen, token.Real, token.Sub,
+			token.Real, token.RParen, token.Div, token.Int, token.RParen,
+		}},
+		{"27	 !=51.2\n", []uint8{
+			token.Int, token.Neq, token.Real,
+		}},
+		{"	 'data'||\n'51''.2 data'\n||.2", []uint8{
+			token.Text, token.Concat, token.Text, token.Concat, token.Real,
+		}},
+		{"9\n\n<= 27", []uint8{token.Int, token.Lte, token.Int}},
+		{"9 >=\n27", []uint8{token.Int, token.Gte, token.Int}},
+		{"9	 <\n	 27", []uint8{token.Int, token.Lt, token.Int}},
+		{"\n\n9\n	 >	 27\n", []uint8{token.Int, token.Gt, token.Int}},
+	}
+
+	for i, test := range tests {
+		lex := newLexer(test.data)
+
+		for j, id := range test.expected {
+			err := lex.Next()
+			if err != nil {
+				t.Errorf("%d: %d: непредвиденная ошибка: %s", i, j, err.Error())
+				return
+			}
+
+			if id != lex.Tok().ID() {
+				t.Errorf("%d: %d: ожидалось %d, получено %d",
+					i, j, id, lex.Tok().ID())
+			}
+		}
+	}
+}
+
 func Test_Next_errors(t *testing.T) {
 	//все тесты должны пройти с ошибками
 	tests := []struct {
