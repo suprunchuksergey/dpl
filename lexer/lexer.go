@@ -263,6 +263,32 @@ func (l *lexer) Next() error {
 			}
 			l.tok = token.NewWithValue(id, start, res.String())
 
+		//идентификатор
+		case unicode.IsLetter(l.char) || l.char == '_':
+			var res strings.Builder
+
+			for unicode.IsDigit(l.char) || l.char == '_' || unicode.IsLetter(l.char) {
+				res.WriteRune(unicode.ToLower(l.char))
+				l.next()
+			}
+
+			switch res.String() {
+			case "and":
+				l.tok = token.New(token.And, start)
+			case "or":
+				l.tok = token.New(token.Or, start)
+			case "not":
+				l.tok = token.New(token.Not, start)
+			case "true":
+				l.tok = token.New(token.True, start)
+			case "false":
+				l.tok = token.New(token.False, start)
+			case "null":
+				l.tok = token.New(token.Null, start)
+			default:
+				l.tok = token.NewWithValue(token.Ident, start, res.String())
+			}
+
 		default:
 			return errUnexpected(l.pos, l.char)
 		}

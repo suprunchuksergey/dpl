@@ -1092,6 +1092,58 @@ func Test_Next(t *testing.T) {
 				},
 			},
 		},
+		{
+			data: "PI + -.5 * i",
+			expected: []lexer{
+				{
+					index: 2,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 3),
+					tok: token.NewWithValue(
+						token.Ident,
+						pos.NewWithStart(1, 1),
+						"pi",
+					),
+				},
+				{
+					index: 4,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 5),
+					tok:   token.New(token.Add, pos.NewWithStart(1, 4)),
+				},
+				{
+					index: 6,
+					char:  '.',
+					pos:   pos.NewWithStart(1, 7),
+					tok:   token.New(token.Sub, pos.NewWithStart(1, 6)),
+				},
+				{
+					index: 8,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 9),
+					tok: token.NewWithValue(
+						token.Real,
+						pos.NewWithStart(1, 7),
+						"0.5",
+					),
+				},
+				{
+					index: 10,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 11),
+					tok:   token.New(token.Mul, pos.NewWithStart(1, 10)),
+				},
+				{
+					index: 12,
+					pos:   pos.NewWithStart(1, 13),
+					tok: token.NewWithValue(
+						token.Ident,
+						pos.NewWithStart(1, 12),
+						"i",
+					),
+				},
+			},
+		},
 	}
 
 	for i, test := range tests {
@@ -1169,6 +1221,21 @@ func Test_Next_ids_only(t *testing.T) {
 		{"9 >=\n27", []uint8{token.Int, token.Gte, token.Int}},
 		{"9	 <\n	 27", []uint8{token.Int, token.Lt, token.Int}},
 		{"\n\n9\n	 >	 27\n", []uint8{token.Int, token.Gt, token.Int}},
+		{"and AND And", []uint8{token.And, token.And, token.And}},
+		{"or OR Or", []uint8{token.Or, token.Or, token.Or}},
+		{"not NOT Not", []uint8{token.Not, token.Not, token.Not}},
+		{"true TRUE True", []uint8{token.True, token.True, token.True}},
+		{"false FALSE False", []uint8{token.False, token.False, token.False}},
+		{"null NULL Null", []uint8{token.Null, token.Null, token.Null}},
+		{"res_8 RES_8 Res_8", []uint8{token.Ident, token.Ident, token.Ident}},
+		{"_8 8res", []uint8{token.Ident, token.Int, token.Ident}},
+		{"привет ПРИВЕТ Привет", []uint8{token.Ident, token.Ident, token.Ident}},
+		{"(привет+27)	 *((	 51.2-привет) /привет)*NULL", []uint8{
+			token.LParen, token.Ident, token.Add, token.Int, token.RParen,
+			token.Mul, token.LParen, token.LParen, token.Real, token.Sub,
+			token.Ident, token.RParen, token.Div, token.Ident, token.RParen,
+			token.Mul, token.Null,
+		}},
 	}
 
 	for i, test := range tests {

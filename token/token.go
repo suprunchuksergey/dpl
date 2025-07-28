@@ -18,14 +18,24 @@ const (
 	Lte          // <=
 	Gte          // >=
 	Concat       // ||
-	And          // and
-	Or           // or
-	Not          // not
 	Int          // 10, 0, ...
 	Real         // 10.0, .1, 10., ...
 	Text         // '...'
 	LParen       // (
 	RParen       // )
+
+	//начинается с буквы или подчеркивания и содержит
+	//буквы, цифры и подчеркивания
+	Ident // ident_10, ...
+
+	//зарезервированные идентификаторы
+
+	And   // and
+	Or    // or
+	Not   // not
+	True  // true
+	False // false
+	Null  // null
 )
 
 type token struct {
