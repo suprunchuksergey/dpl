@@ -1144,6 +1144,56 @@ func Test_Next(t *testing.T) {
 				},
 			},
 		},
+		{
+			data: "and or not true false null lexer",
+			expected: []lexer{
+				{
+					index: 3,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 4),
+					tok:   token.New(token.And, pos.NewWithStart(1, 1)),
+				},
+				{
+					index: 6,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 7),
+					tok:   token.New(token.Or, pos.NewWithStart(1, 5)),
+				},
+				{
+					index: 10,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 11),
+					tok:   token.New(token.Not, pos.NewWithStart(1, 8)),
+				},
+				{
+					index: 15,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 16),
+					tok:   token.New(token.True, pos.NewWithStart(1, 12)),
+				},
+				{
+					index: 21,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 22),
+					tok:   token.New(token.False, pos.NewWithStart(1, 17)),
+				},
+				{
+					index: 26,
+					char:  ' ',
+					pos:   pos.NewWithStart(1, 27),
+					tok:   token.New(token.Null, pos.NewWithStart(1, 23)),
+				},
+				{
+					index: 32,
+					pos:   pos.NewWithStart(1, 33),
+					tok: token.NewWithValue(
+						token.Ident,
+						pos.NewWithStart(1, 28),
+						"lexer",
+					),
+				},
+			},
+		},
 	}
 
 	for i, test := range tests {
@@ -1236,6 +1286,7 @@ func Test_Next_ids_only(t *testing.T) {
 			token.Ident, token.RParen, token.Div, token.Ident, token.RParen,
 			token.Mul, token.Null,
 		}},
+		{"oro anda notn", []uint8{token.Ident, token.Ident, token.Ident}},
 	}
 
 	for i, test := range tests {
