@@ -152,6 +152,10 @@ func (l *lexer) Next() error {
 	switch l.char {
 	case 0:
 		return io.EOF
+	case '(':
+		l.h(token.LParen, start)
+	case ')':
+		l.h(token.RParen, start)
 	case '+':
 		l.h(token.Add, start)
 	case '-':

@@ -24,6 +24,8 @@ const (
 	Int          // 10, 0, ...
 	Real         // 10.0, .1, 10., ...
 	Text         // '...'
+	LParen       // (
+	RParen       // )
 )
 
 type token struct {

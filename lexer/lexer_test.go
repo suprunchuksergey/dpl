@@ -1066,6 +1066,32 @@ func Test_Next(t *testing.T) {
 				},
 			},
 		},
+		{
+			data: `(5)`,
+			expected: []lexer{
+				{
+					index: 1,
+					char:  '5',
+					pos:   pos.NewWithStart(1, 2),
+					tok:   token.New(token.LParen, pos.NewWithStart(1, 1)),
+				},
+				{
+					index: 2,
+					char:  ')',
+					pos:   pos.NewWithStart(1, 3),
+					tok: token.NewWithValue(
+						token.Int,
+						pos.NewWithStart(1, 2),
+						"5",
+					),
+				},
+				{
+					index: 3,
+					pos:   pos.NewWithStart(1, 4),
+					tok:   token.New(token.RParen, pos.NewWithStart(1, 3)),
+				},
+			},
+		},
 	}
 
 	for i, test := range tests {
