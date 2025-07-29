@@ -7,7 +7,7 @@ import (
 
 type binary struct {
 	left, right Node
-	op          op.Op
+	op          op.Binary
 }
 
 func (b binary) Exec() (val.Val, error) {
@@ -24,7 +24,7 @@ func (b binary) Exec() (val.Val, error) {
 	return b.op(l, r), nil
 }
 
-func newBinary(l, r Node, op op.Op) binary {
+func newBinary(l, r Node, op op.Binary) binary {
 	return binary{
 		left:  l,
 		right: r,

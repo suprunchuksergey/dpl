@@ -5,9 +5,9 @@ import (
 	"math"
 )
 
-type Op func(a, b val.Val) val.Val
+type Binary func(a, b val.Val) val.Val
 
-func check(f Op) Op {
+func check(f Binary) Binary {
 	return func(a, b val.Val) val.Val {
 		if val.IsNull(a) || val.IsNull(b) {
 			return val.Null()
