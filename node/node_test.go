@@ -207,6 +207,13 @@ func Test_Not(t *testing.T) {
 	).exec(t)
 }
 
+func Test_Neg(t *testing.T) {
+	newRow(
+		Neg(Val(val.Int(160524))),
+		val.Int(-160524),
+	).exect(t)
+}
+
 func Test_Val(t *testing.T) {
 	newRows(
 		newRow(Val(val.Int(160524)), val.Int(160524)),

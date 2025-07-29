@@ -60,21 +60,25 @@ func newUnary(n Node, op op.Unary) unary {
 
 type Node interface{ Exec() (val.Val, error) }
 
-func Add(l, r Node) Node    { return newBinary(l, r, op.Add) }
-func Sub(l, r Node) Node    { return newBinary(l, r, op.Sub) }
-func Mul(l, r Node) Node    { return newBinary(l, r, op.Mul) }
-func Div(l, r Node) Node    { return newBinary(l, r, op.Div) }
-func Rem(l, r Node) Node    { return newBinary(l, r, op.Rem) }
-func Eq(l, r Node) Node     { return newBinary(l, r, op.Eq) }
-func Neq(l, r Node) Node    { return newBinary(l, r, op.Neq) }
-func Lt(l, r Node) Node     { return newBinary(l, r, op.Lt) }
-func Lte(l, r Node) Node    { return newBinary(l, r, op.Lte) }
-func Gt(l, r Node) Node     { return newBinary(l, r, op.Gt) }
-func Gte(l, r Node) Node    { return newBinary(l, r, op.Gte) }
+func Add(l, r Node) Node { return newBinary(l, r, op.Add) }
+func Sub(l, r Node) Node { return newBinary(l, r, op.Sub) }
+func Mul(l, r Node) Node { return newBinary(l, r, op.Mul) }
+func Div(l, r Node) Node { return newBinary(l, r, op.Div) }
+func Rem(l, r Node) Node { return newBinary(l, r, op.Rem) }
+
+func Eq(l, r Node) Node  { return newBinary(l, r, op.Eq) }
+func Neq(l, r Node) Node { return newBinary(l, r, op.Neq) }
+func Lt(l, r Node) Node  { return newBinary(l, r, op.Lt) }
+func Lte(l, r Node) Node { return newBinary(l, r, op.Lte) }
+func Gt(l, r Node) Node  { return newBinary(l, r, op.Gt) }
+func Gte(l, r Node) Node { return newBinary(l, r, op.Gte) }
+
 func Concat(l, r Node) Node { return newBinary(l, r, op.Concat) }
 
 func And(l, r Node) Node { return newBinary(l, r, op.And) }
 func Or(l, r Node) Node  { return newBinary(l, r, op.Or) }
 func Not(n Node) Node    { return newUnary(n, op.Not) }
+
+func Neg(n Node) Node { return newUnary(n, op.Neg) }
 
 func Val(val val.Val) Node { return newValue(val) }
