@@ -225,6 +225,42 @@ func Test_Val(t *testing.T) {
 	).exec(t)
 }
 
+func Test_Int(t *testing.T) {
+	newRow(
+		Int(160524),
+		val.Int(160524)).exect(t)
+}
+
+func Test_Real(t *testing.T) {
+	newRow(
+		Real(16.0524),
+		val.Real(16.0524)).exect(t)
+}
+
+func Test_Text(t *testing.T) {
+	newRow(
+		Text("text"),
+		val.Text("text")).exect(t)
+}
+
+func Test_True(t *testing.T) {
+	newRow(
+		True(),
+		val.True()).exect(t)
+}
+
+func Test_False(t *testing.T) {
+	newRow(
+		False(),
+		val.False()).exect(t)
+}
+
+func Test_Null(t *testing.T) {
+	newRow(
+		Null(),
+		val.Null()).exect(t)
+}
+
 func Test_Expr(t *testing.T) {
 	newRows(
 		newRow(

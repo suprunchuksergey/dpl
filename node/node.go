@@ -82,3 +82,10 @@ func Not(n Node) Node    { return newUnary(n, op.Not) }
 func Neg(n Node) Node { return newUnary(n, op.Neg) }
 
 func Val(val val.Val) Node { return newValue(val) }
+
+func Int(v int64) Node    { return Val(val.Int(v)) }
+func Real(v float64) Node { return Val(val.Real(v)) }
+func Text(v string) Node  { return Val(val.Text(v)) }
+func True() Node          { return Val(val.True()) }
+func False() Node         { return Val(val.False()) }
+func Null() Node          { return Val(val.Null()) }
