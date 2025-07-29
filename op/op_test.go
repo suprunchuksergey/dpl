@@ -357,3 +357,56 @@ func Test_Concat(t *testing.T) {
 		{val.Text("hello "), val.Text("world"), val.Text("hello world")},
 	}.exec(t, Concat)
 }
+
+func Test_And(t *testing.T) {
+	rows{
+		{val.True(), val.True(), val.True()},
+		{val.True(), val.False(), val.False()},
+		{val.False(), val.True(), val.False()},
+		{val.False(), val.False(), val.False()},
+		{val.Int(512), val.Text("text"), val.True()},
+		{val.Int(0), val.Text("text"), val.False()},
+		{val.Int(512), val.Text(""), val.False()},
+		{val.Int(0), val.Text(""), val.False()},
+		{val.Int(512), val.Null(), val.Null()},
+		{val.Null(), val.Int(512), val.Null()},
+	}.exec(t, And)
+}
+
+func Test_Or(t *testing.T) {
+	rows{
+		{val.True(), val.True(), val.True()},
+		{val.True(), val.False(), val.True()},
+		{val.False(), val.True(), val.True()},
+		{val.False(), val.False(), val.False()},
+		{val.Int(512), val.Text("text"), val.True()},
+		{val.Int(0), val.Text("text"), val.True()},
+		{val.Int(512), val.Text(""), val.True()},
+		{val.Int(0), val.Text(""), val.False()},
+		{val.Int(512), val.Null(), val.Null()},
+		{val.Null(), val.Int(512), val.Null()},
+	}.exec(t, Or)
+}
+
+func Test_Not(t *testing.T) {
+	tests := []struct {
+		v,
+		expected val.Val
+	}{
+		{val.True(), val.False()},
+		{val.False(), val.True()},
+		{val.Int(512), val.False()},
+		{val.Int(0), val.True()},
+		{val.Text("text"), val.False()},
+		{val.Text(""), val.True()},
+		{val.Null(), val.Null()},
+	}
+
+	for i, test := range tests {
+		v := Not(test.v)
+		if v != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, v)
+		}
+	}
+}

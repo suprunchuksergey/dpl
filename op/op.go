@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+type Unary func(v val.Val) val.Val
+
 type Binary func(a, b val.Val) val.Val
 
 func check(f Binary) Binary {
@@ -102,3 +104,18 @@ var Gte = check(func(a, b val.Val) val.Val {
 var Concat = check(func(a, b val.Val) val.Val {
 	return val.Text(a.Text() + b.Text())
 })
+
+var And = check(func(a, b val.Val) val.Val {
+	return val.Bool(a.Bool() && b.Bool())
+})
+
+var Or = check(func(a, b val.Val) val.Val {
+	return val.Bool(a.Bool() || b.Bool())
+})
+
+var Not Unary = func(v val.Val) val.Val {
+	if val.IsNull(v) {
+		return val.Null()
+	}
+	return val.Bool(!v.Bool())
+}
