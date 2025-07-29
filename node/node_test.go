@@ -173,6 +173,40 @@ func Test_Concat(t *testing.T) {
 	).exect(t)
 }
 
+func Test_And(t *testing.T) {
+	newRows(
+		newRow(
+			And(Val(val.True()), Val(val.True())),
+			val.True(),
+		),
+		newRow(
+			And(Val(val.True()), Val(val.False())),
+			val.False(),
+		),
+	).exec(t)
+}
+
+func Test_Or(t *testing.T) {
+	newRows(
+		newRow(
+			Or(Val(val.True()), Val(val.True())),
+			val.True(),
+		),
+		newRow(
+			Or(Val(val.True()), Val(val.False())),
+			val.True(),
+		),
+	).exec(t)
+}
+
+func Test_Not(t *testing.T) {
+	newRows(
+		newRow(Not(Val(val.True())), val.False()),
+		newRow(Not(Val(val.False())), val.True()),
+		newRow(Not(Val(val.Int(160524))), val.False()),
+	).exec(t)
+}
+
 func Test_Val(t *testing.T) {
 	newRows(
 		newRow(Val(val.Int(160524)), val.Int(160524)),
