@@ -389,10 +389,7 @@ func Test_Or(t *testing.T) {
 }
 
 func Test_Not(t *testing.T) {
-	tests := []struct {
-		v,
-		expected val.Val
-	}{
+	tests := []struct{ v, expected val.Val }{
 		{val.True(), val.False()},
 		{val.False(), val.True()},
 		{val.Int(512), val.False()},
@@ -404,6 +401,28 @@ func Test_Not(t *testing.T) {
 
 	for i, test := range tests {
 		v := Not(test.v)
+		if v != test.expected {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, v)
+		}
+	}
+}
+
+func Test_Neg(t *testing.T) {
+	tests := []struct{ v, expected val.Val }{
+		{val.Int(0), val.Int(0)},
+		{val.Int(512), val.Int(-512)},
+		{val.Real(5.12), val.Real(-5.12)},
+		{val.True(), val.Int(-1)},
+		{val.False(), val.Int(0)},
+		{val.Text("text"), val.Int(0)},
+		{val.Text("512text"), val.Int(-512)},
+		{val.Text("5.12text"), val.Real(-5.12)},
+		{val.Null(), val.Null()},
+	}
+
+	for i, test := range tests {
+		v := Neg(test.v)
 		if v != test.expected {
 			t.Errorf("%d: ожидалось %s, получено %s",
 				i, test.expected, v)

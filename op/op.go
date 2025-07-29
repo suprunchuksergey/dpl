@@ -125,3 +125,10 @@ var Or = binary(func(a, b val.Val) val.Val {
 var Not = unary(func(v val.Val) val.Val {
 	return val.Bool(!v.Bool())
 })
+
+var Neg = unary(func(v val.Val) val.Val {
+	if val.IsReal(v) {
+		return val.Real(-v.Real())
+	}
+	return val.Int(-v.Int())
+})
