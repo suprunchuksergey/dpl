@@ -1,6 +1,7 @@
 package token
 
 import (
+	"fmt"
 	"github.com/suprunchuksergey/dpl/pos"
 )
 
@@ -65,6 +66,66 @@ func (t token) OneOf(ids ...uint8) bool {
 	return false
 }
 
+func (t token) String() string {
+	switch t.id {
+	case Add:
+		return "+"
+	case Sub:
+		return "-"
+	case Mul:
+		return "*"
+	case Div:
+		return "/"
+	case Rem:
+		return "%"
+
+	case Eq:
+		return "="
+	case Neq:
+		return "!="
+	case Lt:
+		return "<"
+	case Gt:
+		return ">"
+	case Lte:
+		return "<="
+	case Gte:
+		return ">="
+
+	case Concat:
+		return "||"
+	case Int:
+		return "int"
+	case Real:
+		return "real"
+	case Text:
+		return "text"
+	case LParen:
+		return "("
+	case RParen:
+		return ")"
+
+	case Ident:
+		return "ident"
+
+	case And:
+		return "and"
+	case Or:
+		return "or"
+	case Not:
+		return "not"
+	case True:
+		return "true"
+	case False:
+		return "false"
+	case Null:
+		return "null"
+
+	default:
+		return "unknown"
+	}
+}
+
 type withValue struct {
 	token
 	value string
@@ -77,15 +138,14 @@ func newWithValue(id uint8, start pos.Pos, value string) withValue {
 	}
 }
 
-func (t withValue) Value() string {
-	return t.value
-}
+func (t withValue) Value() string { return t.value }
 
 type Token interface {
 	ID() uint8
 	Start() pos.Pos
 	Is(id uint8) bool
 	OneOf(ids ...uint8) bool
+	fmt.Stringer
 }
 
 func New(id uint8, start pos.Pos) Token {
