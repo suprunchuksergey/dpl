@@ -50,12 +50,19 @@ func newToken(id uint8, start pos.Pos) token {
 	}
 }
 
-func (t token) ID() uint8 {
-	return t.id
-}
+func (t token) ID() uint8 { return t.id }
 
-func (t token) Start() pos.Pos {
-	return t.start
+func (t token) Start() pos.Pos { return t.start }
+
+func (t token) Is(id uint8) bool { return t.id == id }
+
+func (t token) OneOf(ids ...uint8) bool {
+	for _, id := range ids {
+		if t.Is(id) {
+			return true
+		}
+	}
+	return false
 }
 
 type withValue struct {
@@ -77,6 +84,8 @@ func (t withValue) Value() string {
 type Token interface {
 	ID() uint8
 	Start() pos.Pos
+	Is(id uint8) bool
+	OneOf(ids ...uint8) bool
 }
 
 func New(id uint8, start pos.Pos) Token {
