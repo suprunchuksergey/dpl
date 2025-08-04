@@ -322,3 +322,76 @@ func Test_Expr(t *testing.T) {
 		),
 	).exec(t)
 }
+
+func Test_DeepEqual(t *testing.T) {
+	tests := []struct {
+		a, b     Node
+		expected bool
+	}{
+		{True(), True(), true},
+		{False(), False(), true},
+		{Null(), Null(), true},
+		{Int(256), Int(256), true},
+		{Int(256), Int(600), false},
+		{Int(256), Real(2.56), false},
+		{
+			Add(Int(256), Real(2.56)),
+			Add(Int(256), Real(2.56)),
+			true,
+		},
+		{
+			Add(Int(256), Real(2.56)),
+			Mul(Int(256), Real(2.56)),
+			false,
+		},
+		{
+			Add(Int(256), Real(2.56)),
+			Add(Real(2.56), Int(256)),
+			false,
+		},
+		{
+			Add(Int(256), Real(2.56)),
+			Mul(Int(256), Real(2.56)),
+			false,
+		},
+		{
+			Add(Int(256), Real(2.56)),
+			Add(Int(256), Int(256)),
+			false,
+		},
+		{
+			Mul(Add(Int(256), Real(2.56)), Real(2.56)),
+			Mul(Add(Int(256), Real(2.56)), Real(2.56)),
+			true,
+		},
+		{
+			Mul(Add(Int(256), Real(2.56)), Real(2.56)),
+			Mul(Sub(Int(256), Real(2.56)), Real(2.56)),
+			false,
+		},
+		{True(), False(), false},
+		{Null(), False(), false},
+		{Null(), Int(256), false},
+		{
+			Add(Int(256), Real(2.56)),
+			Int(256),
+			false,
+		},
+		{
+			Add(Int(256), Real(2.56)),
+			Not(True()),
+			false,
+		},
+		{Int(256), Not(True()), false},
+		{Int(256), nil, false},
+		{nil, nil, true},
+		{Not(True()), Not(True()), true},
+	}
+
+	for i, test := range tests {
+		if DeepEqual(test.a, test.b) != test.expected {
+			t.Errorf("%d: ожидалось %t, получено %t",
+				i, test.expected, !test.expected)
+		}
+	}
+}

@@ -3,6 +3,7 @@ package node
 import (
 	"github.com/suprunchuksergey/dpl/op"
 	"github.com/suprunchuksergey/dpl/val"
+	"reflect"
 )
 
 type binary struct {
@@ -89,3 +90,32 @@ func Text(v string) Node  { return Val(val.Text(v)) }
 func True() Node          { return Val(val.True()) }
 func False() Node         { return Val(val.False()) }
 func Null() Node          { return Val(val.Null()) }
+
+func DeepEqual(a, b Node) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	switch aval := a.(type) {
+	case value:
+		bval, ok := b.(value)
+		return ok && aval == bval
+
+	case unary:
+		bval, ok := b.(unary)
+		return ok &&
+			reflect.ValueOf(aval.op).Pointer() ==
+				reflect.ValueOf(bval.op).Pointer() &&
+			DeepEqual(aval.n, bval.n)
+
+	case binary:
+		bval, ok := b.(binary)
+		return ok &&
+			reflect.ValueOf(aval.op).Pointer() ==
+				reflect.ValueOf(bval.op).Pointer() &&
+			DeepEqual(aval.left, bval.left) &&
+			DeepEqual(aval.right, bval.right)
+
+	default:
+		return false
+	}
+}
