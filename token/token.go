@@ -37,6 +37,8 @@ const (
 	True  // true
 	False // false
 	Null  // null
+
+	EOF // конец файла
 )
 
 type token struct {
@@ -120,6 +122,9 @@ func (t token) String() string {
 		return "false"
 	case Null:
 		return "null"
+
+	case EOF:
+		return "eof"
 
 	default:
 		return "unknown"

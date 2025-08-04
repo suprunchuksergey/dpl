@@ -3,7 +3,6 @@ package lexer
 import (
 	"github.com/suprunchuksergey/dpl/pos"
 	"github.com/suprunchuksergey/dpl/token"
-	"io"
 	"testing"
 )
 
@@ -1368,15 +1367,6 @@ func Test_Next_errors(t *testing.T) {
 				pos.NewWithStart(1, 2),
 				'.',
 			),
-		},
-		{
-			data:     "",
-			expected: io.EOF,
-		},
-		{
-			// без ошибок
-			data:     "		 \n5.			 +   -.5\n *\n		  5 \n=\n 55\n /		 5.5 || 't''es 	\\n''t\n\n'''",
-			expected: io.EOF,
 		},
 	}
 

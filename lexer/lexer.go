@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/suprunchuksergey/dpl/pos"
 	"github.com/suprunchuksergey/dpl/token"
-	"io"
 	"strings"
 	"unicode"
 )
@@ -150,8 +149,8 @@ func (l *lexer) Next() error {
 	l.skipSpaces()         // пропустить все пробельные символы
 	start := l.pos.Clone() //начало токена
 	switch l.char {
-	case 0:
-		return io.EOF
+	case 0 /*EOF*/ :
+		l.tok = token.New(token.EOF, start)
 	case '(':
 		l.h(token.LParen, start)
 	case ')':
@@ -311,7 +310,6 @@ func errUnexpected(pos pos.Pos, char rune) error {
 type Lexer interface {
 	// Next считывает новый токен из последовательности,
 	//вернет ошибку, если токен не может быть прочитан (встретил неизвестный символ и т. д.)
-	//или io.EOF если все прочитано
 	Next() error
 	// Tok возвращает последний прочитанный токен
 	Tok() token.Token
