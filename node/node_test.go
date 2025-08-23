@@ -221,7 +221,6 @@ func Test_Val(t *testing.T) {
 		newRow(Val(val.Text("16052419683")), val.Text("16052419683")),
 		newRow(Val(val.True()), val.True()),
 		newRow(Val(val.Null()), val.Null()),
-		newRow(Val(nil), val.Null()),
 	).exec(t)
 }
 

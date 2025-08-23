@@ -28,6 +28,7 @@ func Test_Exec(t *testing.T) {
 		{"true or false", val.True()},
 		{"true and not false", val.True()},
 		{"not (true and false)", val.True()},
+		{"not null", val.True()},
 	}
 
 	for _, test := range tests {

@@ -1,134 +1,116 @@
 package op
 
 import (
-	"github.com/suprunchuksergey/dpl/val"
+	. "github.com/suprunchuksergey/dpl/val"
 	"math"
 )
 
-type Unary func(v val.Val) val.Val
+type Unary func(v Val) Val
 
-func unary(f Unary) Unary {
-	return func(v val.Val) val.Val {
-		if val.IsNull(v) {
-			return v
-		}
-		return f(v)
+type Binary func(a, b Val) Val
+
+func Add(a, b Val) Val {
+	if a.IsReal() || b.IsReal() {
+		return Real(a.ToReal() + b.ToReal())
 	}
+	return Int(a.ToInt() + b.ToInt())
 }
 
-type Binary func(a, b val.Val) val.Val
-
-func binary(f Binary) Binary {
-	return func(a, b val.Val) val.Val {
-		if val.IsNull(a) || val.IsNull(b) {
-			return val.Null()
-		}
-		return f(a, b)
+func Sub(a, b Val) Val {
+	if a.IsReal() || b.IsReal() {
+		return Real(a.ToReal() - b.ToReal())
 	}
+	return Int(a.ToInt() - b.ToInt())
 }
 
-var Add = binary(func(a, b val.Val) val.Val {
-	if val.IsReal(a) || val.IsReal(b) {
-		return val.Real(a.Real() + b.Real())
+func Mul(a, b Val) Val {
+	if a.IsReal() || b.IsReal() {
+		return Real(a.ToReal() * b.ToReal())
 	}
-	return val.Int(a.Int() + b.Int())
-})
+	return Int(a.ToInt() * b.ToInt())
+}
 
-var Sub = binary(func(a, b val.Val) val.Val {
-	if val.IsReal(a) || val.IsReal(b) {
-		return val.Real(a.Real() - b.Real())
+func Div(a, b Val) Val {
+	if b.ToReal() == 0 {
+		return Null()
 	}
-	return val.Int(a.Int() - b.Int())
-})
-
-var Mul = binary(func(a, b val.Val) val.Val {
-	if val.IsReal(a) || val.IsReal(b) {
-		return val.Real(a.Real() * b.Real())
+	if a.IsReal() || b.IsReal() {
+		return Real(a.ToReal() / b.ToReal())
 	}
-	return val.Int(a.Int() * b.Int())
-})
+	return Int(a.ToInt() / b.ToInt())
+}
 
-var Div = binary(func(a, b val.Val) val.Val {
-	if b.Real() == 0 {
-		return val.Null()
+func Rem(a, b Val) Val {
+	if b.ToReal() == 0 {
+		return Null()
 	}
-	if val.IsReal(a) || val.IsReal(b) {
-		return val.Real(a.Real() / b.Real())
+	if a.IsReal() || b.IsReal() {
+		return Real(math.Mod(a.ToReal(), b.ToReal()))
 	}
-	return val.Int(a.Int() / b.Int())
-})
+	return Int(a.ToInt() % b.ToInt())
+}
 
-var Rem = binary(func(a, b val.Val) val.Val {
-	if b.Real() == 0 {
-		return val.Null()
+func Eq(a, b Val) Val {
+	if a.IsText() && b.IsText() {
+		return Bool(a.ToText() == b.ToText())
 	}
-	if val.IsReal(a) || val.IsReal(b) {
-		return val.Real(math.Mod(a.Real(), b.Real()))
+	return Bool(a.ToReal() == b.ToReal())
+}
+
+func Neq(a, b Val) Val {
+	if a.IsText() && b.IsText() {
+		return Bool(a.ToText() != b.ToText())
 	}
-	return val.Int(a.Int() % b.Int())
-})
+	return Bool(a.ToReal() != b.ToReal())
+}
 
-var Eq = binary(func(a, b val.Val) val.Val {
-	if val.IsText(a) && val.IsText(b) {
-		return val.Bool(a.Text() == b.Text())
+func Lt(a, b Val) Val {
+	if a.IsText() && b.IsText() {
+		return Bool(a.ToText() < b.ToText())
 	}
-	return val.Bool(a.Real() == b.Real())
-})
+	return Bool(a.ToReal() < b.ToReal())
+}
 
-var Neq = binary(func(a, b val.Val) val.Val {
-	if val.IsText(a) && val.IsText(b) {
-		return val.Bool(a.Text() != b.Text())
+func Lte(a, b Val) Val {
+	if a.IsText() && b.IsText() {
+		return Bool(a.ToText() <= b.ToText())
 	}
-	return val.Bool(a.Real() != b.Real())
-})
+	return Bool(a.ToReal() <= b.ToReal())
+}
 
-var Lt = binary(func(a, b val.Val) val.Val {
-	if val.IsText(a) && val.IsText(b) {
-		return val.Bool(a.Text() < b.Text())
+func Gt(a, b Val) Val {
+	if a.IsText() && b.IsText() {
+		return Bool(a.ToText() > b.ToText())
 	}
-	return val.Bool(a.Real() < b.Real())
-})
+	return Bool(a.ToReal() > b.ToReal())
+}
 
-var Lte = binary(func(a, b val.Val) val.Val {
-	if val.IsText(a) && val.IsText(b) {
-		return val.Bool(a.Text() <= b.Text())
+func Gte(a, b Val) Val {
+	if a.IsText() && b.IsText() {
+		return Bool(a.ToText() >= b.ToText())
 	}
-	return val.Bool(a.Real() <= b.Real())
-})
+	return Bool(a.ToReal() >= b.ToReal())
+}
 
-var Gt = binary(func(a, b val.Val) val.Val {
-	if val.IsText(a) && val.IsText(b) {
-		return val.Bool(a.Text() > b.Text())
+func Concat(a, b Val) Val {
+	return Text(a.ToText() + b.ToText())
+}
+
+func And(a, b Val) Val {
+	return Bool(a.ToBool() && b.ToBool())
+}
+
+func Or(a, b Val) Val {
+	return Bool(a.ToBool() || b.ToBool())
+}
+
+func Not(v Val) Val {
+	return Bool(!v.ToBool())
+}
+
+func Neg(v Val) Val {
+	if v.IsReal() {
+		return Real(-v.ToReal())
 	}
-	return val.Bool(a.Real() > b.Real())
-})
-
-var Gte = binary(func(a, b val.Val) val.Val {
-	if val.IsText(a) && val.IsText(b) {
-		return val.Bool(a.Text() >= b.Text())
-	}
-	return val.Bool(a.Real() >= b.Real())
-})
-
-var Concat = binary(func(a, b val.Val) val.Val {
-	return val.Text(a.Text() + b.Text())
-})
-
-var And = binary(func(a, b val.Val) val.Val {
-	return val.Bool(a.Bool() && b.Bool())
-})
-
-var Or = binary(func(a, b val.Val) val.Val {
-	return val.Bool(a.Bool() || b.Bool())
-})
-
-var Not = unary(func(v val.Val) val.Val {
-	return val.Bool(!v.Bool())
-})
-
-var Neg = unary(func(v val.Val) val.Val {
-	if val.IsReal(v) {
-		return val.Real(-v.Real())
-	}
-	return val.Int(-v.Int())
-})
+	return Int(-v.ToInt())
+}
