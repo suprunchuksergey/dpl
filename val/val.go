@@ -25,7 +25,7 @@ func (val val) ToInt() int64 {
 		return 0
 	case string:
 		return textToInt([]rune(v))
-	case nil:
+	case nil, []Val:
 		return 0
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в INT", val))
@@ -45,7 +45,7 @@ func (val val) ToReal() float64 {
 		return 0
 	case string:
 		return textToReal([]rune(v))
-	case nil:
+	case nil, []Val:
 		return 0
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в REAL", val))
@@ -62,7 +62,7 @@ func (val val) ToText() string {
 		return strconv.FormatBool(v)
 	case string:
 		return v
-	case nil:
+	case nil, []Val:
 		return ""
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в TEXT", val))
@@ -81,6 +81,8 @@ func (val val) ToBool() bool {
 		return len(v) > 0
 	case nil:
 		return false
+	case []Val:
+		return len(v) > 0
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в BOOL", val))
 	}

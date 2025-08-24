@@ -16,7 +16,7 @@ parser реализует рекурсивный спуск для разбор�
 обрабатывают операторы (например, layer4: *, /, %; layer5: +, -) и операнды.
 
 слои:
-layer1 -> true, false, null, int, real, text
+layer1 -> true, false, null, int, real, text, []
 layer2 -> ()
 layer3 -> - (унарный)
 layer4 -> *, /, %
@@ -29,11 +29,47 @@ layer10 -> or
 */
 type parser struct{ lex lexer.Lexer }
 
-// true, false, null, int, real, text
+// true, false, null, int, real, text, []
 func (p *parser) layer1() (node.Node, error) {
 	var n node.Node
 
 	switch tok := p.lex.Tok(); tok.ID() {
+	case token.LBrack:
+		err := p.lex.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		if p.lex.Tok().Is(token.RBrack) {
+			n = node.Array([]node.Node{})
+			break
+		}
+
+		var items []node.Node
+		for {
+			n, err := p.layer10()
+			if err != nil {
+				return nil, err
+			}
+			items = append(items, n)
+
+			if !p.lex.Tok().OneOf(token.Comma, token.RBrack) {
+				return nil, unexpected(p.lex.Tok())
+			}
+
+			if p.lex.Tok().Is(token.Comma) {
+				err = p.lex.Next()
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			if p.lex.Tok().Is(token.RBrack) {
+				break
+			}
+		}
+		n = node.Array(items)
+
 	case token.Null:
 		n = node.Null()
 	case token.True:
