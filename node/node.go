@@ -75,6 +75,36 @@ func (a array) Exec() (val.Val, error) {
 
 func newArray(items []Node) array { return array{items} }
 
+type Record struct{ k, v Node }
+
+func NewRecord(k, v Node) Record {
+	return Record{k: k, v: v}
+}
+
+type Records []Record
+
+type dict struct{ records Records }
+
+func (d dict) Exec() (val.Val, error) {
+	m := make(map[string]val.Val, len(d.records))
+
+	for _, record := range d.records {
+		k, err := record.k.Exec()
+		if err != nil {
+			return nil, err
+		}
+		v, err := record.v.Exec()
+		if err != nil {
+			return nil, err
+		}
+		m[k.ToText()] = v
+	}
+
+	return val.Map(m), nil
+}
+
+func newDict(records Records) dict { return dict{records} }
+
 type Node interface{ Exec() (val.Val, error) }
 
 func Add(l, r Node) Node { return newBinary(l, r, op.Add) }
@@ -108,6 +138,7 @@ func False() Node         { return Val(val.False()) }
 func Null() Node          { return Val(val.Null()) }
 
 func Array(v []Node) Node { return newArray(v) }
+func Map(v Records) Node  { return newDict(v) }
 
 func DeepEqual(a, b Node) bool {
 	if a == nil || b == nil {

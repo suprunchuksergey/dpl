@@ -274,6 +274,36 @@ func Test_Array(t *testing.T) {
 	).exec(t)
 }
 
+func Test_Map(t *testing.T) {
+	newRows(
+		newRow(
+			Map(Records{}),
+			val.Map(map[string]val.Val{})),
+		newRow(
+			Map(Records{
+				Record{Text("text"), Int(81)},
+				Record{Int(8), Real(8.1)},
+				Record{True(), Null()},
+			}),
+			val.Map(map[string]val.Val{
+				"text": val.Int(81),
+				"8":    val.Real(8.1),
+				"true": val.Null(),
+			})),
+		newRow(
+			Map(Records{
+				Record{Concat(Text("text"), Int(1)), Int(81)},
+				Record{Add(Int(8), Int(1)), Sub(Real(8.1), Real(.1))},
+				Record{And(True(), False()), Null()},
+			}),
+			val.Map(map[string]val.Val{
+				"text1": val.Int(81),
+				"9":     val.Real(8),
+				"false": val.Null(),
+			})),
+	).exec(t)
+}
+
 func Test_Expr(t *testing.T) {
 	newRows(
 		newRow(
