@@ -155,6 +155,19 @@ func (l *lexer) Next() error {
 		l.h(token.LParen, start)
 	case ')':
 		l.h(token.RParen, start)
+	case '[':
+		l.h(token.LBrack, start)
+	case ']':
+		l.h(token.RBrack, start)
+	case '{':
+		l.h(token.LBrace, start)
+	case '}':
+		l.h(token.RBrace, start)
+	case ',':
+		l.h(token.Comma, start)
+	case ':':
+		l.h(token.Colon, start)
+
 	case '+':
 		l.h(token.Add, start)
 	case '-':

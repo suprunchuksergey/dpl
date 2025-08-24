@@ -22,8 +22,16 @@ const (
 	Int          // 10, 0, ...
 	Real         // 10.0, .1, 10., ...
 	Text         // '...'
-	LParen       // (
-	RParen       // )
+
+	LParen // (
+	RParen // )
+	LBrack // [
+	RBrack // ]
+	LBrace // {
+	RBrace // }
+
+	Comma // ,
+	Colon // :
 
 	//начинается с буквы или подчеркивания и содержит
 	//буквы, цифры и подчеркивания
@@ -102,10 +110,23 @@ func (t token) String() string {
 		return "real"
 	case Text:
 		return "text"
+
 	case LParen:
 		return "("
 	case RParen:
 		return ")"
+	case LBrack:
+		return "["
+	case RBrack:
+		return "]"
+	case LBrace:
+		return "{"
+	case RBrace:
+		return "}"
+	case Comma:
+		return ","
+	case Colon:
+		return ":"
 
 	case Ident:
 		return "ident"

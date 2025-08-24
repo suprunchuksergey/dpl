@@ -1213,6 +1213,54 @@ func Test_Next(t *testing.T) {
 				},
 			},
 		},
+		{
+			data: "{}",
+			expected: []lexer{
+				{
+					index: 1,
+					char:  '}',
+					pos:   pos.NewWithStart(1, 2),
+					tok:   token.New(token.LBrace, pos.NewWithStart(1, 1)),
+				},
+				{
+					index: 2,
+					pos:   pos.NewWithStart(1, 3),
+					tok:   token.New(token.RBrace, pos.NewWithStart(1, 2)),
+				},
+			},
+		},
+		{
+			data: "[]",
+			expected: []lexer{
+				{
+					index: 1,
+					char:  ']',
+					pos:   pos.NewWithStart(1, 2),
+					tok:   token.New(token.LBrack, pos.NewWithStart(1, 1)),
+				},
+				{
+					index: 2,
+					pos:   pos.NewWithStart(1, 3),
+					tok:   token.New(token.RBrack, pos.NewWithStart(1, 2)),
+				},
+			},
+		},
+		{
+			data: ",:",
+			expected: []lexer{
+				{
+					index: 1,
+					char:  ':',
+					pos:   pos.NewWithStart(1, 2),
+					tok:   token.New(token.Comma, pos.NewWithStart(1, 1)),
+				},
+				{
+					index: 2,
+					pos:   pos.NewWithStart(1, 3),
+					tok:   token.New(token.Colon, pos.NewWithStart(1, 2)),
+				},
+			},
+		},
 	}
 
 	for i, test := range tests {
