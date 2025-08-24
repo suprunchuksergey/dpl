@@ -81,7 +81,7 @@ func (r row) exec(t *testing.T, l uint8) {
 	}
 
 	if node.DeepEqual(r.expected, v) == false {
-		t.Errorf("%s: ожидалось %s, получено %s",
+		t.Errorf("%s: ожидалось %v, получено %v",
 			r.data, r.expected, v)
 	}
 }
@@ -122,6 +122,27 @@ func Test_layer1(t *testing.T) {
 			node.Array([]node.Node{
 				node.True(), node.Int(19683), node.Text("text"),
 				node.Array([]node.Node{node.True(), node.Int(19683), node.Text("text")}),
+			})),
+		r("{}", node.Map(node.Records{})),
+		r(
+			"{'text' : 19683}",
+			node.Map(node.Records{
+				node.NewRecord(node.Text("text"), node.Int(19683)),
+			})),
+		r(
+			"{'text' : 19683,}",
+			node.Map(node.Records{
+				node.NewRecord(node.Text("text"), node.Int(19683)),
+			})),
+		r(
+			"{'text'||19 : 19683, 3*9 : 19.683/683,}",
+			node.Map(node.Records{
+				node.NewRecord(
+					node.Concat(node.Text("text"), node.Int(19)),
+					node.Int(19683)),
+				node.NewRecord(
+					node.Mul(node.Int(3), node.Int(9)),
+					node.Div(node.Real(19.683), node.Int(683))),
 			})),
 	).exec(t, layer1)
 }

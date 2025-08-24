@@ -16,7 +16,7 @@ parser реализует рекурсивный спуск для разбор�
 обрабатывают операторы (например, layer4: *, /, %; layer5: +, -) и операнды.
 
 слои:
-layer1 -> true, false, null, int, real, text, []
+layer1 -> true, false, null, int, real, text, [], {}
 layer2 -> ()
 layer3 -> - (унарный)
 layer4 -> *, /, %
@@ -29,7 +29,7 @@ layer10 -> or
 */
 type parser struct{ lex lexer.Lexer }
 
-// true, false, null, int, real, text, []
+// true, false, null, int, real, text, [], {}
 func (p *parser) layer1() (node.Node, error) {
 	var n node.Node
 
@@ -69,6 +69,56 @@ func (p *parser) layer1() (node.Node, error) {
 			}
 		}
 		n = node.Array(items)
+
+	case token.LBrace:
+		err := p.lex.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		records := make(node.Records, 0)
+
+		if p.lex.Tok().Is(token.RBrace) {
+			n = node.Map(records)
+			break
+		}
+
+		for {
+			k, err := p.layer10()
+			if err != nil {
+				return nil, err
+			}
+
+			if !p.lex.Tok().Is(token.Colon) {
+				return nil, unexpected(p.lex.Tok())
+			}
+			if err = p.lex.Next(); err != nil {
+				return nil, err
+			}
+
+			v, err := p.layer10()
+			if err != nil {
+				return nil, err
+			}
+
+			records = append(records, node.NewRecord(k, v))
+
+			if !p.lex.Tok().OneOf(token.Comma, token.RBrace) {
+				return nil, unexpected(p.lex.Tok())
+			}
+
+			if p.lex.Tok().Is(token.Comma) {
+				err = p.lex.Next()
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			if p.lex.Tok().Is(token.RBrace) {
+				break
+			}
+		}
+		n = node.Map(records)
 
 	case token.Null:
 		n = node.Null()
