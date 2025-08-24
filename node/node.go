@@ -148,12 +148,33 @@ func DeepEqual(a, b Node) bool {
 	case value:
 		bval, ok := b.(value)
 		return ok && aval == bval
+
 	case array:
 		bval, ok := b.(array)
-		return ok && reflect.DeepEqual(aval, bval)
+		if !ok || len(aval.items) != len(bval.items) {
+			return false
+		}
+		for i := range aval.items {
+			if !DeepEqual(aval.items[i], bval.items[i]) {
+				return false
+			}
+		}
+		return true
+
 	case dict:
 		bval, ok := b.(dict)
-		return ok && reflect.DeepEqual(aval, bval)
+		if !ok || len(aval.records) != len(bval.records) {
+			return false
+		}
+
+		for i := range aval.records {
+			if !DeepEqual(aval.records[i].k, bval.records[i].k) ||
+				!DeepEqual(aval.records[i].v, bval.records[i].v) {
+				return false
+			}
+		}
+
+		return true
 
 	case unary:
 		bval, ok := b.(unary)

@@ -435,6 +435,12 @@ func Test_DeepEqual(t *testing.T) {
 			Array([]Node{Int(8), Text("text")}), false},
 		{Array([]Node{Int(108), Text("text")}),
 			Array([]Node{Int(108)}), false},
+		{Array([]Node{Add(Int(108), Text("108"))}),
+			Array([]Node{Add(Int(108), Text("108"))}),
+			true},
+		{Array([]Node{Add(Int(108), Text("108"))}),
+			Array([]Node{Add(Int(108), Text("108")), Add(Int(108), Text("108"))}),
+			false},
 		{Map(Records{Record{Text("text"), Int(108)}}),
 			Map(Records{Record{Text("text"), Int(108)}}),
 			true,
@@ -445,6 +451,32 @@ func Test_DeepEqual(t *testing.T) {
 		},
 		{Map(Records{Record{Text("text"), Int(108)}}),
 			Map(Records{Record{Text("text"), Int(18)}}),
+			false,
+		},
+		{
+			Map(Records{
+				Record{
+					Concat(Text("text"), Text("false")),
+					Add(Int(108), Int(8))}}),
+			Map(Records{
+				Record{
+					Concat(Text("text"), Text("false")),
+					Add(Int(108), Int(8))}}),
+			true,
+		},
+		{
+			Map(Records{
+				Record{
+					Concat(Text("text"), Text("false")),
+					Add(Int(108), Int(8))},
+				Record{
+					Concat(Text("text"), Text("false")),
+					Add(Int(108), Int(8))},
+			}),
+			Map(Records{
+				Record{
+					Concat(Text("text"), Text("false")),
+					Add(Int(108), Int(8))}}),
 			false,
 		},
 	}
