@@ -151,6 +151,9 @@ func DeepEqual(a, b Node) bool {
 	case array:
 		bval, ok := b.(array)
 		return ok && reflect.DeepEqual(aval, bval)
+	case dict:
+		bval, ok := b.(dict)
+		return ok && reflect.DeepEqual(aval, bval)
 
 	case unary:
 		bval, ok := b.(unary)

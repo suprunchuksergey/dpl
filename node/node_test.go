@@ -435,6 +435,18 @@ func Test_DeepEqual(t *testing.T) {
 			Array([]Node{Int(8), Text("text")}), false},
 		{Array([]Node{Int(108), Text("text")}),
 			Array([]Node{Int(108)}), false},
+		{Map(Records{Record{Text("text"), Int(108)}}),
+			Map(Records{Record{Text("text"), Int(108)}}),
+			true,
+		},
+		{Map(Records{Record{Text("text"), Int(108)}}),
+			Map(Records{Record{Text("txt"), Int(108)}}),
+			false,
+		},
+		{Map(Records{Record{Text("text"), Int(108)}}),
+			Map(Records{Record{Text("text"), Int(18)}}),
+			false,
+		},
 	}
 
 	for i, test := range tests {
