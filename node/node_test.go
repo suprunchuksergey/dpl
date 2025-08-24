@@ -3,6 +3,7 @@ package node
 import (
 	"fmt"
 	"github.com/suprunchuksergey/dpl/val"
+	"reflect"
 	"testing"
 )
 
@@ -18,7 +19,7 @@ func (r row) exec() error {
 		return fmt.Errorf("непредвиденная ошибка: %s", err.Error())
 	}
 
-	if v != r.expected {
+	if !reflect.DeepEqual(v, r.expected) {
 		return fmt.Errorf("ожидалось %s, получено %s",
 			r.expected, v)
 	}
@@ -260,6 +261,19 @@ func Test_Null(t *testing.T) {
 		val.Null()).exect(t)
 }
 
+func Test_Array(t *testing.T) {
+	newRows(
+		newRow(Array([]Node{}), val.Array([]val.Val{})),
+		newRow(Array([]Node{Int(81)}), val.Array([]val.Val{val.Int(81)})),
+		newRow(
+			Array([]Node{Int(81), Text("text")}),
+			val.Array([]val.Val{val.Int(81), val.Text("text")})),
+		newRow(
+			Array([]Node{Add(Int(81), Int(27)), Text("text")}),
+			val.Array([]val.Val{val.Int(108), val.Text("text")})),
+	).exec(t)
+}
+
 func Test_Expr(t *testing.T) {
 	newRows(
 		newRow(
@@ -385,6 +399,12 @@ func Test_DeepEqual(t *testing.T) {
 		{Int(256), nil, false},
 		{nil, nil, true},
 		{Not(True()), Not(True()), true},
+		{Array([]Node{Int(108), Text("text")}),
+			Array([]Node{Int(108), Text("text")}), true},
+		{Array([]Node{Int(108), Text("text")}),
+			Array([]Node{Int(8), Text("text")}), false},
+		{Array([]Node{Int(108), Text("text")}),
+			Array([]Node{Int(108)}), false},
 	}
 
 	for i, test := range tests {

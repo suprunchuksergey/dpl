@@ -59,6 +59,22 @@ func newUnary(n Node, op op.Unary) unary {
 	}
 }
 
+type array struct{ items []Node }
+
+func (a array) Exec() (val.Val, error) {
+	items := make([]val.Val, 0, len(a.items))
+	for _, item := range a.items {
+		v, err := item.Exec()
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, v)
+	}
+	return val.Array(items), nil
+}
+
+func newArray(items []Node) array { return array{items} }
+
 type Node interface{ Exec() (val.Val, error) }
 
 func Add(l, r Node) Node { return newBinary(l, r, op.Add) }
@@ -91,6 +107,8 @@ func True() Node          { return Val(val.True()) }
 func False() Node         { return Val(val.False()) }
 func Null() Node          { return Val(val.Null()) }
 
+func Array(v []Node) Node { return newArray(v) }
+
 func DeepEqual(a, b Node) bool {
 	if a == nil || b == nil {
 		return a == b
@@ -99,6 +117,9 @@ func DeepEqual(a, b Node) bool {
 	case value:
 		bval, ok := b.(value)
 		return ok && aval == bval
+	case array:
+		bval, ok := b.(array)
+		return ok && reflect.DeepEqual(aval, bval)
 
 	case unary:
 		bval, ok := b.(unary)
