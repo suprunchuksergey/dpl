@@ -25,7 +25,7 @@ func (val val) ToInt() int64 {
 		return 0
 	case string:
 		return textToInt([]rune(v))
-	case nil, []Val:
+	case nil, []Val, map[string]Val:
 		return 0
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в INT", val))
@@ -45,7 +45,7 @@ func (val val) ToReal() float64 {
 		return 0
 	case string:
 		return textToReal([]rune(v))
-	case nil, []Val:
+	case nil, []Val, map[string]Val:
 		return 0
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в REAL", val))
@@ -62,7 +62,7 @@ func (val val) ToText() string {
 		return strconv.FormatBool(v)
 	case string:
 		return v
-	case nil, []Val:
+	case nil, []Val, map[string]Val:
 		return ""
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в TEXT", val))
@@ -83,8 +83,34 @@ func (val val) ToBool() bool {
 		return false
 	case []Val:
 		return len(v) > 0
+	case map[string]Val:
+		return len(v) > 0
 	default:
 		panic(fmt.Sprintf("невозможно преобразовать %s в BOOL", val))
+	}
+}
+
+func (val val) ToArray() []Val {
+	switch v := val.val.(type) {
+	case []Val:
+		return v
+	case string:
+		arr := make([]Val, 0, len(v))
+		for _, char := range []rune(v) {
+			arr = append(arr, Text(string(char)))
+		}
+		return arr
+	default:
+		panic(fmt.Sprintf("невозможно преобразовать %s в ARRAY", val))
+	}
+}
+
+func (val val) ToMap() map[string]Val {
+	switch v := val.val.(type) {
+	case map[string]Val:
+		return v
+	default:
+		panic(fmt.Sprintf("невозможно преобразовать %s в MAP", val))
 	}
 }
 
@@ -143,6 +169,9 @@ type Val interface {
 	ToReal() float64
 	ToText() string
 	ToBool() bool
+
+	ToArray() []Val
+	ToMap() map[string]Val
 
 	//каждый метод проверки возвращает true, только если
 	//значение точно соответствует указанному типу,

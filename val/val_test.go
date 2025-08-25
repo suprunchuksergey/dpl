@@ -1,6 +1,7 @@
 package val
 
 import (
+	"reflect"
 	"testing"
 	"unicode"
 )
@@ -152,6 +153,43 @@ func Test_ToBool(t *testing.T) {
 		n := test.val.ToBool()
 		if n != test.expected {
 			t.Errorf("%d: ожидалось %t, получено %t", i, test.expected, n)
+		}
+	}
+}
+
+func Test_ToArray(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected []Val
+	}{
+		{Array([]Val{Int(2187)}), []Val{Int(2187)}},
+		{Text("text"), []Val{
+			Text("t"),
+			Text("e"),
+			Text("x"),
+			Text("t"),
+		}},
+		{Text(""), []Val{}},
+	}
+	for i, test := range tests {
+		n := test.val.ToArray()
+		if !reflect.DeepEqual(n, test.expected) {
+			t.Errorf("%d: ожидалось %v, получено %v", i, test.expected, n)
+		}
+	}
+}
+
+func Test_ToMap(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected map[string]Val
+	}{
+		{Map(map[string]Val{"a": Int(2187)}), map[string]Val{"a": Int(2187)}},
+	}
+	for i, test := range tests {
+		n := test.val.ToMap()
+		if !reflect.DeepEqual(n, test.expected) {
+			t.Errorf("%d: ожидалось %v, получено %v", i, test.expected, n)
 		}
 	}
 }
