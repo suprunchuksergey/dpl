@@ -13,19 +13,20 @@ parser реализует рекурсивный спуск для разбор�
 с учетом приоритета операций.
 
 слои (layer[p], где p — приоритет, меньший p = выше приоритет)
-обрабатывают операторы (например, layer4: *, /, %; layer5: +, -) и операнды.
+обрабатывают операторы (например, layer5: *, /, %; layer6: +, -) и операнды.
 
 слои:
 layer1 -> true, false, null, int, real, text, [], {}
 layer2 -> ()
-layer3 -> - (унарный)
-layer4 -> *, /, %
-layer5 -> +, -
-layer6 -> ||
-layer7 -> =, !=, <, <=, >, >=
-layer8 -> not
-layer9 -> and
-layer10 -> or
+layer3 -> [] (доступ к индексу)
+layer4 -> - (унарный)
+layer5 -> *, /, %
+layer6 -> +, -
+layer7 -> ||
+layer8 -> =, !=, <, <=, >, >=
+layer9 -> not
+layer10 -> and
+layer11 -> or
 */
 type parser struct{ lex lexer.Lexer }
 
@@ -47,7 +48,7 @@ func (p *parser) layer1() (node.Node, error) {
 
 		var items []node.Node
 		for {
-			n, err := p.layer10()
+			n, err := p.layer11()
 			if err != nil {
 				return nil, err
 			}
@@ -84,7 +85,7 @@ func (p *parser) layer1() (node.Node, error) {
 		}
 
 		for {
-			k, err := p.layer10()
+			k, err := p.layer11()
 			if err != nil {
 				return nil, err
 			}
@@ -96,7 +97,7 @@ func (p *parser) layer1() (node.Node, error) {
 				return nil, err
 			}
 
-			v, err := p.layer10()
+			v, err := p.layer11()
 			if err != nil {
 				return nil, err
 			}
@@ -165,7 +166,7 @@ func (p *parser) layer2() (node.Node, error) {
 		return nil, err
 	}
 
-	n, err := p.layer10()
+	n, err := p.layer11()
 	if err != nil {
 		return nil, err
 	}
@@ -182,10 +183,42 @@ func (p *parser) layer2() (node.Node, error) {
 	return n, nil
 }
 
-// - (унарный)
+// [] (доступ к индексу)
 func (p *parser) layer3() (node.Node, error) {
+	n, err := p.layer2()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.lex.Tok().Is(token.LBrack) {
+		err = p.lex.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		i, err := p.layer11()
+		if err != nil {
+			return nil, err
+		}
+
+		if !p.lex.Tok().Is(token.RBrack) {
+			return nil, unexpected(p.lex.Tok())
+		}
+		err = p.lex.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		n = node.IndexAccess(n, i)
+	}
+
+	return n, nil
+}
+
+// - (унарный)
+func (p *parser) layer4() (node.Node, error) {
 	if p.lex.Tok().ID() != token.Sub {
-		return p.layer2()
+		return p.layer3()
 	}
 
 	err := p.lex.Next()
@@ -193,7 +226,7 @@ func (p *parser) layer3() (node.Node, error) {
 		return nil, err
 	}
 
-	n, err := p.layer3()
+	n, err := p.layer4()
 	if err != nil {
 		return nil, err
 	}
@@ -202,8 +235,8 @@ func (p *parser) layer3() (node.Node, error) {
 }
 
 // *, /, %
-func (p *parser) layer4() (node.Node, error) {
-	n, err := p.layer3()
+func (p *parser) layer5() (node.Node, error) {
+	n, err := p.layer4()
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +249,7 @@ func (p *parser) layer4() (node.Node, error) {
 			return nil, err
 		}
 
-		r, err := p.layer3()
+		r, err := p.layer4()
 		if err != nil {
 			return nil, err
 		}
@@ -235,8 +268,8 @@ func (p *parser) layer4() (node.Node, error) {
 }
 
 // +, -
-func (p *parser) layer5() (node.Node, error) {
-	n, err := p.layer4()
+func (p *parser) layer6() (node.Node, error) {
+	n, err := p.layer5()
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +282,7 @@ func (p *parser) layer5() (node.Node, error) {
 			return nil, err
 		}
 
-		r, err := p.layer4()
+		r, err := p.layer5()
 		if err != nil {
 			return nil, err
 		}
@@ -266,8 +299,8 @@ func (p *parser) layer5() (node.Node, error) {
 }
 
 // ||
-func (p *parser) layer6() (node.Node, error) {
-	n, err := p.layer5()
+func (p *parser) layer7() (node.Node, error) {
+	n, err := p.layer6()
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +311,7 @@ func (p *parser) layer6() (node.Node, error) {
 			return nil, err
 		}
 
-		r, err := p.layer5()
+		r, err := p.layer6()
 		if err != nil {
 			return nil, err
 		}
@@ -290,8 +323,8 @@ func (p *parser) layer6() (node.Node, error) {
 }
 
 // =, !=, <, <=, >, >=
-func (p *parser) layer7() (node.Node, error) {
-	n, err := p.layer6()
+func (p *parser) layer8() (node.Node, error) {
+	n, err := p.layer7()
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +338,7 @@ func (p *parser) layer7() (node.Node, error) {
 			return nil, err
 		}
 
-		r, err := p.layer6()
+		r, err := p.layer7()
 		if err != nil {
 			return nil, err
 		}
@@ -330,9 +363,9 @@ func (p *parser) layer7() (node.Node, error) {
 }
 
 // not
-func (p *parser) layer8() (node.Node, error) {
+func (p *parser) layer9() (node.Node, error) {
 	if p.lex.Tok().ID() != token.Not {
-		return p.layer7()
+		return p.layer8()
 	}
 
 	err := p.lex.Next()
@@ -340,7 +373,7 @@ func (p *parser) layer8() (node.Node, error) {
 		return nil, err
 	}
 
-	n, err := p.layer8()
+	n, err := p.layer9()
 	if err != nil {
 		return nil, err
 	}
@@ -349,8 +382,8 @@ func (p *parser) layer8() (node.Node, error) {
 }
 
 // and
-func (p *parser) layer9() (node.Node, error) {
-	n, err := p.layer8()
+func (p *parser) layer10() (node.Node, error) {
+	n, err := p.layer9()
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +394,7 @@ func (p *parser) layer9() (node.Node, error) {
 			return nil, err
 		}
 
-		r, err := p.layer8()
+		r, err := p.layer9()
 		if err != nil {
 			return nil, err
 		}
@@ -373,8 +406,8 @@ func (p *parser) layer9() (node.Node, error) {
 }
 
 // or
-func (p *parser) layer10() (node.Node, error) {
-	n, err := p.layer9()
+func (p *parser) layer11() (node.Node, error) {
+	n, err := p.layer10()
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +418,7 @@ func (p *parser) layer10() (node.Node, error) {
 			return nil, err
 		}
 
-		r, err := p.layer9()
+		r, err := p.layer10()
 		if err != nil {
 			return nil, err
 		}
@@ -402,7 +435,7 @@ func (p *parser) Parse() (node.Node, error) {
 		return nil, nil
 	}
 
-	n, err := p.layer10()
+	n, err := p.layer11()
 	if err != nil {
 		return nil, err
 	}

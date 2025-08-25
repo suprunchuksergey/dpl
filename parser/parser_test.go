@@ -22,6 +22,7 @@ const (
 	layer8
 	layer9
 	layer10
+	layer11
 )
 
 func call(p *parser, l uint8) (node.Node, error) {
@@ -48,6 +49,8 @@ func call(p *parser, l uint8) (node.Node, error) {
 		return p.layer9()
 	case layer10:
 		return p.layer10()
+	case layer11:
+		return p.layer11()
 	default:
 		panic("неизвестный слой")
 	}
@@ -155,6 +158,58 @@ func Test_layer3(t *testing.T) {
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
 		r("'text'", node.Text("text")),
+		r("[]", node.Array([]node.Node{})),
+		r("[true, 19683, 'text',]",
+			node.Array([]node.Node{
+				node.True(), node.Int(19683), node.Text("text"),
+			})),
+		r("[true, 19683, 'text', [true, 19683, 'text'],]",
+			node.Array([]node.Node{
+				node.True(), node.Int(19683), node.Text("text"),
+				node.Array([]node.Node{node.True(), node.Int(19683), node.Text("text")}),
+			})),
+		r("{}", node.Map(node.Records{})),
+		r(
+			"{'text' : 19683}",
+			node.Map(node.Records{
+				node.NewRecord(node.Text("text"), node.Int(19683)),
+			})),
+		r(
+			"{'text' : 19683,}",
+			node.Map(node.Records{
+				node.NewRecord(node.Text("text"), node.Int(19683)),
+			})),
+		r(
+			"{'text'||19 : 19683, 3*9 : 19.683/683,}",
+			node.Map(node.Records{
+				node.NewRecord(
+					node.Concat(node.Text("text"), node.Int(19)),
+					node.Int(19683)),
+				node.NewRecord(
+					node.Mul(node.Int(3), node.Int(9)),
+					node.Div(node.Real(19.683), node.Int(683))),
+			})),
+		r("[683, 9][1]", node.IndexAccess(
+			node.Array([]node.Node{node.Int(683), node.Int(9)}),
+			node.Int(1),
+		)),
+		r("[683, 9][1][3+9]", node.IndexAccess(
+			node.IndexAccess(
+				node.Array([]node.Node{node.Int(683), node.Int(9)}),
+				node.Int(1),
+			), node.Add(node.Int(3), node.Int(9)),
+		)),
+	).exec(t, layer3)
+}
+
+func Test_layer4(t *testing.T) {
+	rs(
+		r("true", node.True()),
+		r("false", node.False()),
+		r("null", node.Null()),
+		r("19683", node.Int(19683)),
+		r("19.683", node.Real(19.683)),
+		r("'text'", node.Text("text")),
 		r("-19", node.Neg(node.Int(19))),
 		r("--19",
 			node.Neg(
@@ -165,10 +220,10 @@ func Test_layer3(t *testing.T) {
 				node.Neg(
 					node.Neg(
 						node.Int(19))))),
-	).exec(t, layer3)
+	).exec(t, layer4)
 }
 
-func Test_layer4(t *testing.T) {
+func Test_layer5(t *testing.T) {
 	rs(
 		r("true", node.True()),
 		r("false", node.False()),
@@ -193,10 +248,10 @@ func Test_layer4(t *testing.T) {
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
 				node.Neg(node.Int(3)))),
-	).exec(t, layer4)
+	).exec(t, layer5)
 }
 
-func Test_layer5(t *testing.T) {
+func Test_layer6(t *testing.T) {
 	rs(
 		r("true", node.True()),
 		r("false", node.False()),
@@ -230,10 +285,10 @@ func Test_layer5(t *testing.T) {
 					node.Mul(node.Int(19), node.Int(683)),
 					node.Neg(node.Int(3))),
 				node.Int(83))),
-	).exec(t, layer5)
+	).exec(t, layer6)
 }
 
-func Test_layer6(t *testing.T) {
+func Test_layer7(t *testing.T) {
 	rs(
 		r("true", node.True()),
 		r("false", node.False()),
@@ -289,10 +344,10 @@ func Test_layer6(t *testing.T) {
 						node.Neg(node.Int(3))),
 					node.Int(83)),
 			)),
-	).exec(t, layer6)
+	).exec(t, layer7)
 }
 
-func Test_layer7(t *testing.T) {
+func Test_layer8(t *testing.T) {
 	rs(
 		r("true", node.True()),
 		r("false", node.False()),
@@ -362,10 +417,10 @@ func Test_layer7(t *testing.T) {
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
 				node.True())),
-	).exec(t, layer7)
+	).exec(t, layer8)
 }
 
-func Test_layer8(t *testing.T) {
+func Test_layer9(t *testing.T) {
 	rs(
 		r("true", node.True()),
 		r("false", node.False()),
@@ -450,10 +505,10 @@ func Test_layer8(t *testing.T) {
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
-	).exec(t, layer8)
+	).exec(t, layer9)
 }
 
-func Test_layer9(t *testing.T) {
+func Test_layer10(t *testing.T) {
 	rs(
 		r("true", node.True()),
 		r("false", node.False()),
@@ -546,10 +601,10 @@ func Test_layer9(t *testing.T) {
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
 				node.True())),
-	).exec(t, layer9)
+	).exec(t, layer10)
 }
 
-func Test_layer10(t *testing.T) {
+func Test_layer11(t *testing.T) {
 	rs(
 		r("true", node.True()),
 		r("false", node.False()),
@@ -655,7 +710,7 @@ func Test_layer10(t *testing.T) {
 				node.And(node.True(), node.False()),
 				node.And(node.True(), node.True()),
 			)),
-	).exec(t, layer10)
+	).exec(t, layer11)
 }
 
 func Test_layer2(t *testing.T) {

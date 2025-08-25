@@ -29,6 +29,12 @@ func Test_Exec(t *testing.T) {
 		{"true and not false", val.True()},
 		{"not (true and false)", val.True()},
 		{"not null", val.True()},
+		{"[5,1,2][0]", val.Int(5)},
+		{"[[1,5],1,2][0][1]", val.Int(5)},
+		{"'tests'[2]", val.Text("s")},
+		{"[[1,'tests'],1,2][0][1]", val.Text("tests")},
+		{"[[1,'tests'],1,2][0][1][1+1]", val.Text("s")},
+		{"[{'tests':50},1,2][0]['tests']", val.Int(50)},
 	}
 
 	for _, test := range tests {
