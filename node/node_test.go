@@ -304,6 +304,33 @@ func Test_Map(t *testing.T) {
 	).exec(t)
 }
 
+func Test_IndexAccess(t *testing.T) {
+	newRows(
+		newRow(
+			IndexAccess(
+				Array([]Node{
+					Int(512),
+					Int(6561),
+					Int(16384),
+				}), Int(1)),
+			val.Int(6561)),
+		newRow(
+			IndexAccess(
+				Array([]Node{
+					Int(512),
+					Int(6561),
+					Int(16384),
+				}), Int(2)),
+			val.Int(16384)),
+		newRow(IndexAccess(Text("text"), Int(2)), val.Text("x")),
+		newRow(IndexAccess(Map(Records{
+			Record{Concat(Text("text"), Int(1)), Int(81)},
+			Record{Add(Int(8), Int(1)), Sub(Real(8.1), Real(.1))},
+			Record{And(True(), False()), Null()},
+		}), Text("text1")), val.Int(81)),
+	).exec(t)
+}
+
 func Test_Expr(t *testing.T) {
 	newRows(
 		newRow(

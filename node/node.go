@@ -105,6 +105,24 @@ func (d dict) Exec() (val.Val, error) {
 
 func newDict(records Records) dict { return dict{records} }
 
+type indexAccess struct{ v, index Node }
+
+func (i indexAccess) Exec() (val.Val, error) {
+	v, err := i.v.Exec()
+	if err != nil {
+		return nil, err
+	}
+	index, err := i.index.Exec()
+	if err != nil {
+		return nil, err
+	}
+	return op.IndexAccess(v, index)
+}
+
+func newIndexAccess(v, index Node) indexAccess {
+	return indexAccess{v: v, index: index}
+}
+
 type Node interface{ Exec() (val.Val, error) }
 
 func Add(l, r Node) Node { return newBinary(l, r, op.Add) }
@@ -139,6 +157,8 @@ func Null() Node          { return Val(val.Null()) }
 
 func Array(v []Node) Node { return newArray(v) }
 func Map(v Records) Node  { return newDict(v) }
+
+func IndexAccess(v, index Node) Node { return newIndexAccess(v, index) }
 
 func DeepEqual(a, b Node) bool {
 	if a == nil || b == nil {
@@ -175,6 +195,10 @@ func DeepEqual(a, b Node) bool {
 		}
 
 		return true
+
+	case indexAccess:
+		bval, ok := b.(indexAccess)
+		return ok && DeepEqual(aval.v, bval.v) && DeepEqual(aval.index, bval.index)
 
 	case unary:
 		bval, ok := b.(unary)
