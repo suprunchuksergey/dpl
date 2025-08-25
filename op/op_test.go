@@ -416,3 +416,39 @@ func Test_Neg(t *testing.T) {
 		}
 	}
 }
+
+func Test_IndexAccess(t *testing.T) {
+	tests := []struct {
+		v,
+		index,
+		expected Val
+	}{
+		{Array([]Val{Text("hello"), Int(512), True()}),
+			Int(0), Text("hello")},
+		{Array([]Val{Text("hello"), Int(512), True()}),
+			Int(1), Int(512)},
+		{Array([]Val{Text("hello"), Int(512), True()}),
+			Int(2), True()},
+		{Text("hello"), Int(0), Text("h")},
+		{Text("hello"), Int(1), Text("e")},
+		{Text("hello"), Int(2), Text("l")},
+		{Map(map[string]Val{
+			"hello": Int(512),
+			"5":     True(),
+		}), Text("hello"), Int(512)},
+		{Map(map[string]Val{
+			"hello": Int(512),
+			"5":     True(),
+		}), Int(5), True()},
+	}
+	for i, test := range tests {
+		v, err := IndexAccess(test.v, test.index)
+		if err != nil {
+			return
+		}
+		if test.expected != v {
+			t.Errorf("%d: ожидалось %s, получено %s",
+				i, test.expected, v)
+		}
+	}
+}

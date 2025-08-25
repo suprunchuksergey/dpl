@@ -1,6 +1,7 @@
 package op
 
 import (
+	"fmt"
 	. "github.com/suprunchuksergey/dpl/val"
 	"math"
 )
@@ -113,4 +114,13 @@ func Neg(v Val) Val {
 		return Real(-v.ToReal())
 	}
 	return Int(-v.ToInt())
+}
+
+func IndexAccess(v, index Val) (Val, error) {
+	if v.IsArray() || v.IsText() {
+		return v.ToArray()[index.ToInt()], nil
+	} else if v.IsMap() {
+		return v.ToMap()[index.ToText()], nil
+	}
+	return nil, fmt.Errorf("невозможно получить доступ по индексу к %s", v)
 }
