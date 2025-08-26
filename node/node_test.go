@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"github.com/suprunchuksergey/dpl/namespace"
 	"github.com/suprunchuksergey/dpl/val"
 	"reflect"
 	"testing"
@@ -12,8 +13,8 @@ type row struct {
 	expected val.Val
 }
 
-func (r row) exec() error {
-	v, err := r.n.Exec()
+func (r row) exec(init map[string]val.Val) error {
+	v, err := r.n.Exec(namespace.New(init))
 	// предполагается, что узел должен выполниться без ошибок
 	if err != nil {
 		return fmt.Errorf("непредвиденная ошибка: %s", err.Error())
@@ -27,8 +28,8 @@ func (r row) exec() error {
 	return nil
 }
 
-func (r row) exect(t *testing.T) {
-	err := r.exec()
+func (r row) exect(t *testing.T, init map[string]val.Val) {
+	err := r.exec(init)
 	if err != nil {
 		t.Error(err)
 	}
@@ -43,9 +44,9 @@ func newRow(n Node, expected val.Val) row {
 
 type rows []row
 
-func (rows rows) exec(t *testing.T) {
+func (rows rows) exec(t *testing.T, init map[string]val.Val) {
 	for i, r := range rows {
-		err := r.exec()
+		err := r.exec(init)
 		if err != nil {
 			t.Errorf("%d: %s", i, err.Error())
 		}
@@ -58,21 +59,21 @@ func Test_Add(t *testing.T) {
 	newRow(
 		Add(Val(val.Int(125)), Val(val.Int(343))),
 		val.Int(468),
-	).exect(t)
+	).exect(t, nil)
 }
 
 func Test_Sub(t *testing.T) {
 	newRow(
 		Sub(Val(val.Int(468)), Val(val.Int(343))),
 		val.Int(125),
-	).exect(t)
+	).exect(t, nil)
 }
 
 func Test_Mul(t *testing.T) {
 	newRow(
 		Mul(Val(val.Int(468)), Val(val.Int(343))),
 		val.Int(160524),
-	).exect(t)
+	).exect(t, nil)
 }
 
 func Test_Div(t *testing.T) {
@@ -85,7 +86,7 @@ func Test_Div(t *testing.T) {
 			Div(Val(val.Int(160524)), Val(val.Int(0))),
 			val.Null(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Rem(t *testing.T) {
@@ -98,21 +99,21 @@ func Test_Rem(t *testing.T) {
 			Rem(Val(val.Int(160524)), Val(val.Int(0))),
 			val.Null(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Eq(t *testing.T) {
 	newRow(
 		Eq(Val(val.Int(160524)), Val(val.Int(160524))),
 		val.True(),
-	).exect(t)
+	).exect(t, nil)
 }
 
 func Test_Neq(t *testing.T) {
 	newRow(
 		Neq(Val(val.Int(160524)), Val(val.Int(19683))),
 		val.True(),
-	).exect(t)
+	).exect(t, nil)
 }
 
 func Test_Lt(t *testing.T) {
@@ -125,7 +126,7 @@ func Test_Lt(t *testing.T) {
 			Lt(Val(val.Int(160524)), Val(val.Int(160524))),
 			val.False(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Lte(t *testing.T) {
@@ -138,7 +139,7 @@ func Test_Lte(t *testing.T) {
 			Lte(Val(val.Int(160524)), Val(val.Int(160524))),
 			val.True(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Gt(t *testing.T) {
@@ -151,7 +152,7 @@ func Test_Gt(t *testing.T) {
 			Gt(Val(val.Int(160524)), Val(val.Int(160524))),
 			val.False(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Gte(t *testing.T) {
@@ -164,14 +165,14 @@ func Test_Gte(t *testing.T) {
 			Gte(Val(val.Int(160524)), Val(val.Int(160524))),
 			val.True(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Concat(t *testing.T) {
 	newRow(
 		Concat(Val(val.Int(160524)), Val(val.Int(19683))),
 		val.Text("16052419683"),
-	).exect(t)
+	).exect(t, nil)
 }
 
 func Test_And(t *testing.T) {
@@ -184,7 +185,7 @@ func Test_And(t *testing.T) {
 			And(Val(val.True()), Val(val.False())),
 			val.False(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Or(t *testing.T) {
@@ -197,7 +198,7 @@ func Test_Or(t *testing.T) {
 			Or(Val(val.True()), Val(val.False())),
 			val.True(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Not(t *testing.T) {
@@ -205,14 +206,14 @@ func Test_Not(t *testing.T) {
 		newRow(Not(Val(val.True())), val.False()),
 		newRow(Not(Val(val.False())), val.True()),
 		newRow(Not(Val(val.Int(160524))), val.False()),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Neg(t *testing.T) {
 	newRow(
 		Neg(Val(val.Int(160524))),
 		val.Int(-160524),
-	).exect(t)
+	).exect(t, nil)
 }
 
 func Test_Val(t *testing.T) {
@@ -222,43 +223,43 @@ func Test_Val(t *testing.T) {
 		newRow(Val(val.Text("16052419683")), val.Text("16052419683")),
 		newRow(Val(val.True()), val.True()),
 		newRow(Val(val.Null()), val.Null()),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Int(t *testing.T) {
 	newRow(
 		Int(160524),
-		val.Int(160524)).exect(t)
+		val.Int(160524)).exect(t, nil)
 }
 
 func Test_Real(t *testing.T) {
 	newRow(
 		Real(16.0524),
-		val.Real(16.0524)).exect(t)
+		val.Real(16.0524)).exect(t, nil)
 }
 
 func Test_Text(t *testing.T) {
 	newRow(
 		Text("text"),
-		val.Text("text")).exect(t)
+		val.Text("text")).exect(t, nil)
 }
 
 func Test_True(t *testing.T) {
 	newRow(
 		True(),
-		val.True()).exect(t)
+		val.True()).exect(t, nil)
 }
 
 func Test_False(t *testing.T) {
 	newRow(
 		False(),
-		val.False()).exect(t)
+		val.False()).exect(t, nil)
 }
 
 func Test_Null(t *testing.T) {
 	newRow(
 		Null(),
-		val.Null()).exect(t)
+		val.Null()).exect(t, nil)
 }
 
 func Test_Array(t *testing.T) {
@@ -271,7 +272,7 @@ func Test_Array(t *testing.T) {
 		newRow(
 			Array([]Node{Add(Int(81), Int(27)), Text("text")}),
 			val.Array([]val.Val{val.Int(108), val.Text("text")})),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Map(t *testing.T) {
@@ -301,7 +302,18 @@ func Test_Map(t *testing.T) {
 				"9":     val.Real(8),
 				"false": val.Null(),
 			})),
-	).exec(t)
+	).exec(t, nil)
+}
+
+func Test_Ident(t *testing.T) {
+	newRows(
+		newRow(Ident("age"), val.Int(23)),
+		newRow(Ident("num"), val.Real(2.3)),
+		newRow(Add(Ident("num"), Ident("age")), val.Real(25.3)),
+	).exec(t, map[string]val.Val{
+		"age": val.Int(23),
+		"num": val.Real(2.3),
+	})
 }
 
 func Test_IndexAccess(t *testing.T) {
@@ -328,7 +340,7 @@ func Test_IndexAccess(t *testing.T) {
 			Record{Add(Int(8), Int(1)), Sub(Real(8.1), Real(.1))},
 			Record{And(True(), False()), Null()},
 		}), Text("text1")), val.Int(81)),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_Expr(t *testing.T) {
@@ -390,7 +402,7 @@ func Test_Expr(t *testing.T) {
 			),
 			val.True(),
 		),
-	).exec(t)
+	).exec(t, nil)
 }
 
 func Test_DeepEqual(t *testing.T) {

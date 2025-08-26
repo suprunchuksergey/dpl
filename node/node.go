@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/suprunchuksergey/dpl/namespace"
 	"github.com/suprunchuksergey/dpl/op"
 	"github.com/suprunchuksergey/dpl/val"
 	"reflect"
@@ -11,13 +12,13 @@ type binary struct {
 	op          op.Binary
 }
 
-func (b binary) Exec() (val.Val, error) {
-	l, err := b.left.Exec()
+func (b binary) Exec(ns namespace.Namespace) (val.Val, error) {
+	l, err := b.left.Exec(ns)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := b.right.Exec()
+	r, err := b.right.Exec(ns)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +36,7 @@ func newBinary(l, r Node, op op.Binary) binary {
 
 type value struct{ val val.Val }
 
-func (v value) Exec() (val.Val, error) { return v.val, nil }
+func (v value) Exec(_ namespace.Namespace) (val.Val, error) { return v.val, nil }
 
 func newValue(val val.Val) value { return value{val} }
 
@@ -44,8 +45,8 @@ type unary struct {
 	op op.Unary
 }
 
-func (u unary) Exec() (val.Val, error) {
-	v, err := u.n.Exec()
+func (u unary) Exec(ns namespace.Namespace) (val.Val, error) {
+	v, err := u.n.Exec(ns)
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +62,10 @@ func newUnary(n Node, op op.Unary) unary {
 
 type array struct{ items []Node }
 
-func (a array) Exec() (val.Val, error) {
+func (a array) Exec(ns namespace.Namespace) (val.Val, error) {
 	items := make([]val.Val, 0, len(a.items))
 	for _, item := range a.items {
-		v, err := item.Exec()
+		v, err := item.Exec(ns)
 		if err != nil {
 			return nil, err
 		}
@@ -85,15 +86,15 @@ type Records []Record
 
 type dict struct{ records Records }
 
-func (d dict) Exec() (val.Val, error) {
+func (d dict) Exec(ns namespace.Namespace) (val.Val, error) {
 	m := make(map[string]val.Val, len(d.records))
 
 	for _, record := range d.records {
-		k, err := record.k.Exec()
+		k, err := record.k.Exec(ns)
 		if err != nil {
 			return nil, err
 		}
-		v, err := record.v.Exec()
+		v, err := record.v.Exec(ns)
 		if err != nil {
 			return nil, err
 		}
@@ -107,12 +108,12 @@ func newDict(records Records) dict { return dict{records} }
 
 type indexAccess struct{ v, index Node }
 
-func (i indexAccess) Exec() (val.Val, error) {
-	v, err := i.v.Exec()
+func (i indexAccess) Exec(ns namespace.Namespace) (val.Val, error) {
+	v, err := i.v.Exec(ns)
 	if err != nil {
 		return nil, err
 	}
-	index, err := i.index.Exec()
+	index, err := i.index.Exec(ns)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +124,17 @@ func newIndexAccess(v, index Node) indexAccess {
 	return indexAccess{v: v, index: index}
 }
 
-type Node interface{ Exec() (val.Val, error) }
+type ident struct{ name string }
+
+func (i ident) Exec(ns namespace.Namespace) (val.Val, error) {
+	return ns.Get(i.name)
+}
+
+func newIdent(name string) ident { return ident{name: name} }
+
+type Node interface {
+	Exec(ns namespace.Namespace) (val.Val, error)
+}
 
 func Add(l, r Node) Node { return newBinary(l, r, op.Add) }
 func Sub(l, r Node) Node { return newBinary(l, r, op.Sub) }
@@ -155,6 +166,8 @@ func True() Node          { return Val(val.True()) }
 func False() Node         { return Val(val.False()) }
 func Null() Node          { return Val(val.Null()) }
 
+func Ident(name string) Node { return newIdent(name) }
+
 func Array(v []Node) Node { return newArray(v) }
 func Map(v Records) Node  { return newDict(v) }
 
@@ -168,6 +181,10 @@ func DeepEqual(a, b Node) bool {
 	case value:
 		bval, ok := b.(value)
 		return ok && aval == bval
+
+	case ident:
+		bval, ok := b.(ident)
+		return ok && aval.name == bval.name
 
 	case array:
 		bval, ok := b.(array)
