@@ -168,6 +168,9 @@ func (l *lexer) Next() error {
 	case ':':
 		l.h(token.Colon, start)
 
+	case ';':
+		l.h(token.Semicolon, start)
+
 	case '+':
 		l.h(token.Add, start)
 	case '-':

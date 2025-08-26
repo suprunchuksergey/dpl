@@ -46,6 +46,8 @@ const (
 	False // false
 	Null  // null
 
+	Semicolon // ;
+
 	EOF // конец файла
 )
 
@@ -127,6 +129,9 @@ func (t token) String() string {
 		return ","
 	case Colon:
 		return ":"
+
+	case Semicolon:
+		return ";"
 
 	case Ident:
 		return "ident"
