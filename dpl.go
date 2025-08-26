@@ -2,11 +2,12 @@ package dpl
 
 import (
 	"github.com/suprunchuksergey/dpl/lexer"
+	"github.com/suprunchuksergey/dpl/namespace"
 	"github.com/suprunchuksergey/dpl/parser"
 	"github.com/suprunchuksergey/dpl/val"
 )
 
-func Exec(query string) (val.Val, error) {
+func Exec(query string, ns map[string]val.Val) (val.Val, error) {
 	lex := lexer.New(query)
 
 	err := lex.Next()
@@ -21,5 +22,5 @@ func Exec(query string) (val.Val, error) {
 		return nil, err
 	}
 
-	return n.Exec()
+	return n.Exec(namespace.New(ns))
 }

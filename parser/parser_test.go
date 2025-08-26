@@ -116,6 +116,7 @@ func Test_layer1(t *testing.T) {
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
 		r("'text'", node.Text("text")),
+		r("fn", node.Ident("fn")),
 		r("[]", node.Array([]node.Node{})),
 		r("[true, 19683, 'text',]",
 			node.Array([]node.Node{

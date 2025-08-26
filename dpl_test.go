@@ -6,6 +6,11 @@ import (
 )
 
 func Test_Exec(t *testing.T) {
+	ns := map[string]val.Val{
+		"age": val.Int(23),
+		"num": val.Real(2.3),
+	}
+
 	tests := []struct {
 		data     string
 		expected val.Val
@@ -35,10 +40,13 @@ func Test_Exec(t *testing.T) {
 		{"[[1,'tests'],1,2][0][1]", val.Text("tests")},
 		{"[[1,'tests'],1,2][0][1][1+1]", val.Text("s")},
 		{"[{'tests':50},1,2][0]['tests']", val.Int(50)},
+		{"[{'tests':50},1,2][0]['tests']*5||'рублей'", val.Text("250рублей")},
+		{"age+num", val.Real(25.3)},
+		{"age+num-[num][0]", val.Real(23)},
 	}
 
 	for _, test := range tests {
-		v, err := Exec(test.data)
+		v, err := Exec(test.data, ns)
 		if err != nil {
 			t.Error(err)
 			continue

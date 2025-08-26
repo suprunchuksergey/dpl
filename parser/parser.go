@@ -16,7 +16,7 @@ parser реализует рекурсивный спуск для разбор�
 обрабатывают операторы (например, layer5: *, /, %; layer6: +, -) и операнды.
 
 слои:
-layer1 -> true, false, null, int, real, text, [], {}
+layer1 -> true, false, null, int, real, text, [], {}, ident
 layer2 -> ()
 layer3 -> [] (доступ к индексу)
 layer4 -> - (унарный)
@@ -30,11 +30,14 @@ layer11 -> or
 */
 type parser struct{ lex lexer.Lexer }
 
-// true, false, null, int, real, text, [], {}
+// true, false, null, int, real, text, [], {}, ident
 func (p *parser) layer1() (node.Node, error) {
 	var n node.Node
 
 	switch tok := p.lex.Tok(); tok.ID() {
+	case token.Ident:
+		n = node.Ident(tok.(token.WithValue).Value())
+
 	case token.LBrack:
 		err := p.lex.Next()
 		if err != nil {
