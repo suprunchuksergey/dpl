@@ -329,6 +329,31 @@ func Test_Commands(t *testing.T) {
 	).exec(t, nil)
 }
 
+func Test_Assign(t *testing.T) {
+	newRows(
+		newRow(
+			Commands([]Node{
+				Assign(Ident("age"), Int(23)),
+				Ident("age"),
+			}), val.Int(23)),
+		newRow(
+			Commands([]Node{
+				Assign(Ident("age"), Array([]Node{Int(23)})),
+				Assign(IndexAccess(Ident("age"), Int(0)), Int(17)),
+				IndexAccess(Ident("age"), Int(0)),
+			}), val.Int(17)),
+		newRow(
+			Commands([]Node{
+				Assign(Ident("user"), Map([]Record{{
+					k: Text("name"),
+					v: Text("sergey"),
+				}})),
+				Assign(IndexAccess(Ident("user"), Text("name")), Text("polina")),
+				IndexAccess(Ident("user"), Text("name")),
+			}), val.Text("polina")),
+	).exec(t, nil)
+}
+
 func Test_IndexAccess(t *testing.T) {
 	newRows(
 		newRow(

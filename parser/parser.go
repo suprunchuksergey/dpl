@@ -23,7 +23,7 @@ layer4 -> - (унарный)
 layer5 -> *, /, %
 layer6 -> +, -
 layer7 -> ||
-layer8 -> =, !=, <, <=, >, >=
+layer8 -> ==, !=, <, <=, >, >=
 layer9 -> not
 layer10 -> and
 layer11 -> or
@@ -325,7 +325,7 @@ func (p *parser) layer7() (node.Node, error) {
 	return n, nil
 }
 
-// =, !=, <, <=, >, >=
+// ==, !=, <, <=, >, >=
 func (p *parser) layer8() (node.Node, error) {
 	n, err := p.layer7()
 	if err != nil {

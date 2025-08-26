@@ -1,6 +1,8 @@
 package node
 
 import (
+	"errors"
+	"fmt"
 	"github.com/suprunchuksergey/dpl/namespace"
 	"github.com/suprunchuksergey/dpl/op"
 	"github.com/suprunchuksergey/dpl/val"
@@ -148,6 +150,71 @@ func (cmds commands) Exec(ns namespace.Namespace) (val.Val, error) {
 
 func newCommands(cmds []Node) Node { return commands{commands: cmds} }
 
+type assign struct{ l, r Node }
+
+func (a assign) Exec(ns namespace.Namespace) (val.Val, error) {
+	indexes := make([]Node, 0)
+	for {
+		if access, ok := a.l.(indexAccess); ok {
+			indexes = append(indexes, access.index)
+			a.l = access.v
+			continue
+		}
+		break
+	}
+
+	if _, ok := a.l.(ident); !ok {
+		return nil, errors.New("невозможно присвоить значение неидентификатору")
+	}
+
+	v, err := a.r.Exec(ns)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(indexes) == 0 {
+		ns.Set(a.l.(ident).name, v)
+		return v, nil
+	}
+
+	l, err := ns.Get(a.l.(ident).name)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, ind := range indexes {
+		index, err := ind.Exec(ns)
+		if err != nil {
+			return nil, err
+		}
+
+		if i == len(indexes)-1 {
+			if l.IsArray() {
+				l.ToArray()[index.ToInt()] = v
+				break
+			} else if l.IsMap() {
+				l.ToMap()[index.ToText()] = v
+				break
+			}
+			return nil, fmt.Errorf("невозможно получить доступ по индексу к %s", l)
+		}
+
+		l, err = op.IndexAccess(l, index)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return v, nil
+}
+
+func newAssign(l, r Node) Node {
+	return assign{
+		l: l,
+		r: r,
+	}
+}
+
 type Node interface {
 	Exec(ns namespace.Namespace) (val.Val, error)
 }
@@ -191,6 +258,8 @@ func IndexAccess(v, index Node) Node { return newIndexAccess(v, index) }
 
 func Commands(cmds []Node) Node { return newCommands(cmds) }
 
+func Assign(l, r Node) Node { return newAssign(l, r) }
+
 func DeepEqual(a, b Node) bool {
 	if a == nil || b == nil {
 		return a == b
@@ -203,6 +272,12 @@ func DeepEqual(a, b Node) bool {
 	case ident:
 		bval, ok := b.(ident)
 		return ok && aval.name == bval.name
+
+	case assign:
+		bval, ok := b.(assign)
+		return ok &&
+			DeepEqual(aval.l, bval.l) &&
+			DeepEqual(aval.r, bval.r)
 
 	case commands:
 		bval, ok := b.(commands)
