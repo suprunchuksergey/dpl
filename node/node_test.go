@@ -531,6 +531,38 @@ func Test_DeepEqual(t *testing.T) {
 					Add(Int(108), Int(8))}}),
 			false,
 		},
+		{
+			Commands([]Node{
+				Add(Int(25), Real(2)),
+				Add(Int(25), Real(.3)),
+			}),
+			Commands([]Node{
+				Add(Int(25), Real(2)),
+				Add(Int(25), Real(.3)),
+			}),
+			true,
+		},
+		{
+			Commands([]Node{
+				Add(Int(25), Real(2)),
+				Add(Int(25), Real(.3)),
+			}),
+			Commands([]Node{
+				Add(Int(25), Real(.3)),
+				Add(Int(25), Real(2)),
+			}),
+			false,
+		},
+		{
+			Commands([]Node{
+				Add(Int(25), Real(2)),
+				Add(Int(25), Real(.3)),
+			}),
+			Commands([]Node{
+				Add(Int(25), Real(2)),
+			}),
+			false,
+		},
 	}
 
 	for i, test := range tests {

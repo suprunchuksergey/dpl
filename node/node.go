@@ -204,6 +204,18 @@ func DeepEqual(a, b Node) bool {
 		bval, ok := b.(ident)
 		return ok && aval.name == bval.name
 
+	case commands:
+		bval, ok := b.(commands)
+		if !ok || len(aval.commands) != len(bval.commands) {
+			return false
+		}
+		for i := range aval.commands {
+			if !DeepEqual(aval.commands[i], bval.commands[i]) {
+				return false
+			}
+		}
+		return true
+
 	case array:
 		bval, ok := b.(array)
 		if !ok || len(aval.items) != len(bval.items) {
