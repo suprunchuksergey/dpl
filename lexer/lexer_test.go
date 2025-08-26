@@ -396,6 +396,16 @@ func Test_Next(t *testing.T) {
 			},
 		},
 		{
+			data: "=",
+			expected: []lexer{
+				{
+					index: 1,
+					pos:   pos.NewWithStart(1, 2),
+					tok:   token.New(token.Assign, pos.NewWithStart(1, 1)),
+				},
+			},
+		},
+		{
 			data: "-",
 			expected: []lexer{
 				{
@@ -432,16 +442,6 @@ func Test_Next(t *testing.T) {
 					index: 1,
 					pos:   pos.NewWithStart(1, 2),
 					tok:   token.New(token.Rem, pos.NewWithStart(1, 1)),
-				},
-			},
-		},
-		{
-			data: "=",
-			expected: []lexer{
-				{
-					index: 1,
-					pos:   pos.NewWithStart(1, 2),
-					tok:   token.New(token.Eq, pos.NewWithStart(1, 1)),
 				},
 			},
 		},
@@ -623,22 +623,6 @@ func Test_Next(t *testing.T) {
 				{
 					index: 4,
 					pos:   pos.NewWithStart(1, 5),
-					tok:   token.New(token.Eq, pos.NewWithStart(1, 3)),
-				},
-			},
-		},
-		{
-			data: "===",
-			expected: []lexer{
-				{
-					index: 2,
-					char:  '=',
-					pos:   pos.NewWithStart(1, 3),
-					tok:   token.New(token.Eq, pos.NewWithStart(1, 1)),
-				},
-				{
-					index: 3,
-					pos:   pos.NewWithStart(1, 4),
 					tok:   token.New(token.Eq, pos.NewWithStart(1, 3)),
 				},
 			},
@@ -852,7 +836,7 @@ func Test_Next(t *testing.T) {
 			},
 		},
 		{
-			data: "5.5 = 5",
+			data: "5.5 == 5",
 			expected: []lexer{
 				{
 					index: 3,
@@ -865,17 +849,17 @@ func Test_Next(t *testing.T) {
 					),
 				},
 				{
-					index: 5,
+					index: 6,
 					char:  ' ',
-					pos:   pos.NewWithStart(1, 6),
+					pos:   pos.NewWithStart(1, 7),
 					tok:   token.New(token.Eq, pos.NewWithStart(1, 5)),
 				},
 				{
-					index: 7,
-					pos:   pos.NewWithStart(1, 8),
+					index: 8,
+					pos:   pos.NewWithStart(1, 9),
 					tok: token.NewWithValue(
 						token.Int,
-						pos.NewWithStart(1, 7),
+						pos.NewWithStart(1, 8),
 						"5",
 					),
 				},

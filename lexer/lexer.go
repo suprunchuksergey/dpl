@@ -185,8 +185,11 @@ func (l *lexer) Next() error {
 		l.next()
 		if l.char == '=' {
 			l.next()
+			l.tok = token.New(token.Eq, start)
+			break
 		}
-		l.tok = token.New(token.Eq, start)
+		l.tok = token.New(token.Assign, start)
+
 	case '!':
 		l.next()
 		if l.char != '=' {

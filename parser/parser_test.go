@@ -404,17 +404,17 @@ func Test_layer8(t *testing.T) {
 						node.Neg(node.Int(3))),
 					node.Int(83)),
 			)),
-		r("19=683", node.Eq(node.Int(19), node.Int(683))),
+		r("19==683", node.Eq(node.Int(19), node.Int(683))),
 		r("19!=683", node.Neq(node.Int(19), node.Int(683))),
 		r("19<683", node.Lt(node.Int(19), node.Int(683))),
 		r("19<=683", node.Lte(node.Int(19), node.Int(683))),
 		r("19>683", node.Gt(node.Int(19), node.Int(683))),
 		r("19>=683", node.Gte(node.Int(19), node.Int(683))),
-		r("19+83=68*-3",
+		r("19+83==68*-3",
 			node.Eq(
 				node.Add(node.Int(19), node.Int(83)),
 				node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-		r("19=683!=true",
+		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
 				node.True())),
@@ -477,17 +477,17 @@ func Test_layer9(t *testing.T) {
 						node.Neg(node.Int(3))),
 					node.Int(83)),
 			)),
-		r("19=683", node.Eq(node.Int(19), node.Int(683))),
+		r("19==683", node.Eq(node.Int(19), node.Int(683))),
 		r("19!=683", node.Neq(node.Int(19), node.Int(683))),
 		r("19<683", node.Lt(node.Int(19), node.Int(683))),
 		r("19<=683", node.Lte(node.Int(19), node.Int(683))),
 		r("19>683", node.Gt(node.Int(19), node.Int(683))),
 		r("19>=683", node.Gte(node.Int(19), node.Int(683))),
-		r("19+83=68*-3",
+		r("19+83==68*-3",
 			node.Eq(
 				node.Add(node.Int(19), node.Int(83)),
 				node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-		r("19=683!=true",
+		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
 				node.True())),
@@ -501,7 +501,7 @@ func Test_layer9(t *testing.T) {
 				node.Not(
 					node.Not(
 						node.True())))),
-		r("not 19+83=68*-3",
+		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
@@ -565,17 +565,17 @@ func Test_layer10(t *testing.T) {
 						node.Neg(node.Int(3))),
 					node.Int(83)),
 			)),
-		r("19=683", node.Eq(node.Int(19), node.Int(683))),
+		r("19==683", node.Eq(node.Int(19), node.Int(683))),
 		r("19!=683", node.Neq(node.Int(19), node.Int(683))),
 		r("19<683", node.Lt(node.Int(19), node.Int(683))),
 		r("19<=683", node.Lte(node.Int(19), node.Int(683))),
 		r("19>683", node.Gt(node.Int(19), node.Int(683))),
 		r("19>=683", node.Gte(node.Int(19), node.Int(683))),
-		r("19+83=68*-3",
+		r("19+83==68*-3",
 			node.Eq(
 				node.Add(node.Int(19), node.Int(83)),
 				node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-		r("19=683!=true",
+		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
 				node.True())),
@@ -589,13 +589,13 @@ func Test_layer10(t *testing.T) {
 				node.Not(
 					node.Not(
 						node.True())))),
-		r("not 19+83=68*-3",
+		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
 		r("true and false", node.And(node.True(), node.False())),
-		r("not 19+83=68*-3 and true",
+		r("not 19+83==68*-3 and true",
 			node.And(
 				node.Not(
 					node.Eq(
@@ -661,17 +661,17 @@ func Test_layer11(t *testing.T) {
 						node.Neg(node.Int(3))),
 					node.Int(83)),
 			)),
-		r("19=683", node.Eq(node.Int(19), node.Int(683))),
+		r("19==683", node.Eq(node.Int(19), node.Int(683))),
 		r("19!=683", node.Neq(node.Int(19), node.Int(683))),
 		r("19<683", node.Lt(node.Int(19), node.Int(683))),
 		r("19<=683", node.Lte(node.Int(19), node.Int(683))),
 		r("19>683", node.Gt(node.Int(19), node.Int(683))),
 		r("19>=683", node.Gte(node.Int(19), node.Int(683))),
-		r("19+83=68*-3",
+		r("19+83==68*-3",
 			node.Eq(
 				node.Add(node.Int(19), node.Int(83)),
 				node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-		r("19=683!=true",
+		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
 				node.True())),
@@ -685,13 +685,13 @@ func Test_layer11(t *testing.T) {
 				node.Not(
 					node.Not(
 						node.True())))),
-		r("not 19+83=68*-3",
+		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
 		r("true and false", node.And(node.True(), node.False())),
-		r("not 19+83=68*-3 and true",
+		r("not 19+83==68*-3 and true",
 			node.And(
 				node.Not(
 					node.Eq(
@@ -699,7 +699,7 @@ func Test_layer11(t *testing.T) {
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
 				node.True())),
 		r("true or false", node.Or(node.True(), node.False())),
-		r("not 19+83=68*-3 or true",
+		r("not 19+83==68*-3 or true",
 			node.Or(
 				node.Not(
 					node.Eq(

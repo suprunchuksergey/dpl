@@ -12,7 +12,7 @@ const (
 	Mul          // *
 	Div          // /
 	Rem          // %
-	Eq           // =, ==
+	Eq           // ==
 	Neq          // !=, <>
 	Lt           // <
 	Gt           // >
@@ -47,6 +47,8 @@ const (
 	Null  // null
 
 	Semicolon // ;
+
+	Assign // =
 
 	EOF // конец файла
 )
@@ -91,8 +93,11 @@ func (t token) String() string {
 	case Rem:
 		return "%"
 
-	case Eq:
+	case Assign:
 		return "="
+
+	case Eq:
+		return "=="
 	case Neq:
 		return "!="
 	case Lt:
