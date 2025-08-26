@@ -316,6 +316,19 @@ func Test_Ident(t *testing.T) {
 	})
 }
 
+func Test_Commands(t *testing.T) {
+	newRows(
+		newRow(Commands([]Node{
+			Add(Int(25), Real(2)),
+			Add(Int(25), Real(.3)),
+		}), val.Real(25.3)),
+		newRow(Commands([]Node{
+			Add(Int(25), Real(.3)),
+			Add(Int(25), Int(2)),
+		}), val.Int(27)),
+	).exec(t, nil)
+}
+
 func Test_IndexAccess(t *testing.T) {
 	newRows(
 		newRow(

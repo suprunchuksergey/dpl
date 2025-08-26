@@ -132,6 +132,22 @@ func (i ident) Exec(ns namespace.Namespace) (val.Val, error) {
 
 func newIdent(name string) ident { return ident{name: name} }
 
+type commands struct{ commands []Node }
+
+func (cmds commands) Exec(ns namespace.Namespace) (val.Val, error) {
+	res := val.Null()
+	for _, cmd := range cmds.commands {
+		v, err := cmd.Exec(ns)
+		if err != nil {
+			return nil, err
+		}
+		res = v
+	}
+	return res, nil
+}
+
+func newCommands(cmds []Node) Node { return commands{commands: cmds} }
+
 type Node interface {
 	Exec(ns namespace.Namespace) (val.Val, error)
 }
@@ -172,6 +188,8 @@ func Array(v []Node) Node { return newArray(v) }
 func Map(v Records) Node  { return newDict(v) }
 
 func IndexAccess(v, index Node) Node { return newIndexAccess(v, index) }
+
+func Commands(cmds []Node) Node { return newCommands(cmds) }
 
 func DeepEqual(a, b Node) bool {
 	if a == nil || b == nil {
