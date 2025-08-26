@@ -42,7 +42,7 @@ func Test_Exec(t *testing.T) {
 		{"[{'tests':50},1,2][0]['tests']", val.Int(50)},
 		{"[{'tests':50},1,2][0]['tests']*5||'рублей'", val.Text("250рублей")},
 		{"age+num", val.Real(25.3)},
-		{"age+num-[num][0]", val.Real(23)},
+		{"age+num-[num][0];[5,1,2][0]", val.Int(5)},
 	}
 
 	for _, test := range tests {

@@ -731,37 +731,31 @@ func Test_layer2(t *testing.T) {
 func Test_Parse(t *testing.T) {
 	rs(
 		r("81+16*16",
-			node.Add(
-				node.Int(81),
-				node.Mul(node.Int(16), node.Int(16)),
-			),
+			node.Commands([]node.Node{
+				node.Add(
+					node.Int(81),
+					node.Mul(node.Int(16), node.Int(16)),
+				),
+			}),
 		),
 		r("(81+16)*16",
-			node.Mul(
-				node.Add(node.Int(81), node.Int(16)),
-				node.Int(16),
-			),
+			node.Commands([]node.Node{
+				node.Mul(
+					node.Add(node.Int(81), node.Int(16)),
+					node.Int(16),
+				),
+			}),
 		),
 		r("(81+16)*-(64/16)",
-			node.Mul(
-				node.Add(node.Int(81), node.Int(16)),
-				node.Neg(node.Div(node.Int(64), node.Int(16))),
-			),
-		),
-		r("(81+16)*-(64/16)<16%6-1",
-			node.Lt(
+			node.Commands([]node.Node{
 				node.Mul(
 					node.Add(node.Int(81), node.Int(16)),
 					node.Neg(node.Div(node.Int(64), node.Int(16))),
 				),
-				node.Sub(
-					node.Rem(node.Int(16), node.Int(6)),
-					node.Int(1),
-				),
-			),
+			}),
 		),
-		r("(81+16)*-(64/16)<16%6-1 and not true",
-			node.And(
+		r("(81+16)*-(64/16)<16%6-1",
+			node.Commands([]node.Node{
 				node.Lt(
 					node.Mul(
 						node.Add(node.Int(81), node.Int(16)),
@@ -772,11 +766,10 @@ func Test_Parse(t *testing.T) {
 						node.Int(1),
 					),
 				),
-				node.Not(node.True()),
-			),
+			}),
 		),
-		r("(81+16)*-(64/16)<16%6-1 and not true or not not true",
-			node.Or(
+		r("(81+16)*-(64/16)<16%6-1 and not true",
+			node.Commands([]node.Node{
 				node.And(
 					node.Lt(
 						node.Mul(
@@ -790,8 +783,51 @@ func Test_Parse(t *testing.T) {
 					),
 					node.Not(node.True()),
 				),
-				node.Not(node.Not(node.True())),
-			),
+			}),
+		),
+		r("(81+16)*-(64/16)<16%6-1 and not true or not not true",
+			node.Commands([]node.Node{
+				node.Or(
+					node.And(
+						node.Lt(
+							node.Mul(
+								node.Add(node.Int(81), node.Int(16)),
+								node.Neg(node.Div(node.Int(64), node.Int(16))),
+							),
+							node.Sub(
+								node.Rem(node.Int(16), node.Int(6)),
+								node.Int(1),
+							),
+						),
+						node.Not(node.True()),
+					),
+					node.Not(node.Not(node.True())),
+				),
+			}),
+		),
+		r("81+16*16;16*81",
+			node.Commands([]node.Node{
+				node.Add(
+					node.Int(81),
+					node.Mul(node.Int(16), node.Int(16)),
+				),
+				node.Mul(
+					node.Int(16),
+					node.Int(81),
+				),
+			}),
+		),
+		r("81+16*16;16*81;",
+			node.Commands([]node.Node{
+				node.Add(
+					node.Int(81),
+					node.Mul(node.Int(16), node.Int(16)),
+				),
+				node.Mul(
+					node.Int(16),
+					node.Int(81),
+				),
+			}),
 		),
 	).exec(t, parse)
 }

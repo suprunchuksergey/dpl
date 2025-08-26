@@ -438,17 +438,34 @@ func (p *parser) Parse() (node.Node, error) {
 		return nil, nil
 	}
 
-	n, err := p.layer11()
-	if err != nil {
-		return nil, err
+	var cmds []node.Node
+	for {
+		n, err := p.layer11()
+		if err != nil {
+			return nil, err
+		}
+		cmds = append(cmds, n)
+
+		if p.lex.Tok().Is(token.Semicolon) {
+			err = p.lex.Next()
+			if err != nil {
+				return nil, err
+			}
+
+			if p.lex.Tok().Is(token.EOF) {
+				break
+			}
+
+			continue
+		}
+
+		if !p.lex.Tok().Is(token.EOF) {
+			return nil, unexpected(p.lex.Tok())
+		}
+		break
 	}
 
-	//если это не конец
-	if p.lex.Tok().ID() != token.EOF {
-		return nil, unexpected(p.lex.Tok())
-	}
-
-	return n, nil
+	return node.Commands(cmds), nil
 }
 
 func newParser(lex lexer.Lexer) *parser { return &parser{lex} }
