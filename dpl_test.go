@@ -99,6 +99,21 @@ a = [23];
 b = a;
 b[0] = 26;
 a[0];`, val.Int(26)},
+
+		{`if 8<81 {'8<81'}`, val.Text("8<81")},
+		{`if 8>81 {'8>81'}`, val.Null()},
+		{`if 8>81 {'8>81'} else {'8<=81'}`, val.Text("8<=81")},
+		{`if 8>81 {'8>81'}
+elif 81==81 {'81==81'}
+else {'8<=81'}`, val.Text("81==81")},
+		{`if 8>81 {'8>81'}
+elif 81>81 {'81>81'}
+elif 'polina'=='polina' {'polina'}
+else {'8<=81'}`, val.Text("polina")},
+		{`if 8>81 {'8>81'}
+elif 81>81 {'81>81'}
+elif 'polina'=='polina' {'polina';'sergey'}
+else {'8<=81'}`, val.Text("sergey")},
 	}
 
 	for _, test := range tests {

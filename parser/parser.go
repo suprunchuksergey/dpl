@@ -28,6 +28,7 @@ layer9 -> not
 layer10 -> and
 layer11 -> or
 layer12 -> =
+layer13 -> if
 */
 type parser struct{ lex lexer.Lexer }
 
@@ -52,7 +53,7 @@ func (p *parser) layer1() (node.Node, error) {
 
 		var items []node.Node
 		for {
-			n, err := p.layer11()
+			n, err := p.layer12()
 			if err != nil {
 				return nil, err
 			}
@@ -63,8 +64,7 @@ func (p *parser) layer1() (node.Node, error) {
 			}
 
 			if p.lex.Tok().Is(token.Comma) {
-				err = p.lex.Next()
-				if err != nil {
+				if err = p.lex.Next(); err != nil {
 					return nil, err
 				}
 			}
@@ -89,7 +89,7 @@ func (p *parser) layer1() (node.Node, error) {
 		}
 
 		for {
-			k, err := p.layer11()
+			k, err := p.layer12()
 			if err != nil {
 				return nil, err
 			}
@@ -101,7 +101,7 @@ func (p *parser) layer1() (node.Node, error) {
 				return nil, err
 			}
 
-			v, err := p.layer11()
+			v, err := p.layer12()
 			if err != nil {
 				return nil, err
 			}
@@ -170,7 +170,7 @@ func (p *parser) layer2() (node.Node, error) {
 		return nil, err
 	}
 
-	n, err := p.layer11()
+	n, err := p.layer12()
 	if err != nil {
 		return nil, err
 	}
@@ -195,12 +195,11 @@ func (p *parser) layer3() (node.Node, error) {
 	}
 
 	for p.lex.Tok().Is(token.LBrack) {
-		err = p.lex.Next()
-		if err != nil {
+		if err = p.lex.Next(); err != nil {
 			return nil, err
 		}
 
-		i, err := p.layer11()
+		i, err := p.layer12()
 		if err != nil {
 			return nil, err
 		}
@@ -456,6 +455,106 @@ func (p *parser) layer12() (node.Node, error) {
 	return n, nil
 }
 
+// if
+func (p *parser) layer13() (node.Node, error) {
+	if !p.lex.Tok().Is(token.If) {
+		return p.layer12()
+	}
+
+	if err := p.lex.Next(); err != nil {
+		return nil, err
+	}
+
+	cond, err := p.layer12()
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.parseBody()
+	if err != nil {
+		return nil, err
+	}
+
+	first := node.NewBranch(cond, body)
+	var second []*node.Branch
+	var third *node.Branch
+
+	for p.lex.Tok().Is(token.Elif) {
+		if err := p.lex.Next(); err != nil {
+			return nil, err
+		}
+
+		cond, err := p.layer12()
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := p.parseBody()
+		if err != nil {
+			return nil, err
+		}
+
+		second = append(second, node.NewBranch(cond, body))
+	}
+
+	if p.lex.Tok().Is(token.Else) {
+		if err = p.lex.Next(); err != nil {
+			return nil, err
+		}
+
+		body, err := p.parseBody()
+		if err != nil {
+			return nil, err
+		}
+		third = node.NewBranch(nil, body)
+	}
+
+	return node.If(first, second, third), nil
+}
+
+func (p *parser) parseBody() (node.Node, error) {
+	if !p.lex.Tok().Is(token.LBrace) {
+		return nil, unexpected(p.lex.Tok())
+	}
+
+	if err := p.lex.Next(); err != nil {
+		return nil, err
+	}
+
+	var nodes []node.Node
+	for {
+		n, err := p.layer13()
+		if err != nil {
+			return nil, err
+		}
+		nodes = append(nodes, n)
+
+		if p.lex.Tok().Is(token.Semicolon) {
+			if err = p.lex.Next(); err != nil {
+				return nil, err
+			}
+
+			if p.lex.Tok().Is(token.RBrace) {
+				break
+			}
+
+			continue
+		}
+
+		if !p.lex.Tok().Is(token.RBrace) {
+			return nil, unexpected(p.lex.Tok())
+		}
+
+		break
+	}
+
+	if err := p.lex.Next(); err != nil {
+		return nil, err
+	}
+
+	return node.Commands(nodes), nil
+}
+
 func (p *parser) Parse() (node.Node, error) {
 	//если это конец
 	if p.lex.Tok().Is(token.EOF) {
@@ -464,7 +563,7 @@ func (p *parser) Parse() (node.Node, error) {
 
 	var cmds []node.Node
 	for {
-		n, err := p.layer12()
+		n, err := p.layer13()
 		if err != nil {
 			return nil, err
 		}
