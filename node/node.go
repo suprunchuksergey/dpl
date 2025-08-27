@@ -182,21 +182,23 @@ func (a assign) Exec(ns namespace.Namespace) (val.Val, error) {
 		return nil, err
 	}
 
-	for i, ind := range indexes {
+	for i := len(indexes) - 1; i >= 0; i-- {
+		ind := indexes[i]
+
 		index, err := ind.Exec(ns)
 		if err != nil {
 			return nil, err
 		}
 
-		if i == len(indexes)-1 {
+		if i == 0 {
 			if l.IsArray() {
 				l.ToArray()[index.ToInt()] = v
-				break
 			} else if l.IsMap() {
 				l.ToMap()[index.ToText()] = v
-				break
+			} else {
+				return nil, fmt.Errorf("невозможно получить доступ по индексу к %s", l)
 			}
-			return nil, fmt.Errorf("невозможно получить доступ по индексу к %s", l)
+			break
 		}
 
 		l, err = op.IndexAccess(l, index)

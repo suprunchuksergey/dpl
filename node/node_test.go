@@ -351,6 +351,29 @@ func Test_Assign(t *testing.T) {
 				Assign(IndexAccess(Ident("user"), Text("name")), Text("polina")),
 				IndexAccess(Ident("user"), Text("name")),
 			}), val.Text("polina")),
+		newRow(
+			Commands([]Node{
+				Assign(Ident("user"), Array([]Node{
+					Map([]Record{{k: Text("name"), v: Text("sergey")}}),
+				})),
+			}), val.Array([]val.Val{val.Map(map[string]val.Val{"name": val.Text("sergey")})}),
+		),
+		newRow(
+			Commands([]Node{
+				Assign(Ident("users"), Array([]Node{
+					Map([]Record{{k: Text("name"), v: Text("sergey")}}),
+				})),
+				Assign(
+					IndexAccess(
+						IndexAccess(Ident("users"), Int(0)),
+						Text("name"),
+					), Text("polina")),
+				IndexAccess(
+					IndexAccess(Ident("users"), Int(0)),
+					Text("name"),
+				),
+			}), val.Text("polina"),
+		),
 	).exec(t, nil)
 }
 
