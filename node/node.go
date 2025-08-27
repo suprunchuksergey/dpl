@@ -217,6 +217,81 @@ func newAssign(l, r Node) Node {
 	}
 }
 
+type Branch struct {
+	cond Node
+	body Node
+}
+
+func NewBranch(cond, body Node) *Branch {
+	return &Branch{
+		cond: cond,
+		body: body,
+	}
+}
+
+type ifStmt struct {
+	first  *Branch
+	second []*Branch
+	third  *Branch
+}
+
+func (stmt ifStmt) Exec(ns namespace.Namespace) (val.Val, error) {
+	//условие if
+	cond, err := stmt.first.cond.Exec(ns)
+	if err != nil {
+		return nil, err
+	}
+	//если true
+	if cond.ToBool() {
+		//вычислить тело и вернуть результат
+		res, err := stmt.first.body.Exec(ns)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	}
+
+	//для каждого else if
+	for _, b := range stmt.second {
+		//условие else if
+		cond, err := b.cond.Exec(ns)
+		if err != nil {
+			return nil, err
+		}
+		//если true
+		if cond.ToBool() {
+			//вычислить тело и вернуть результат
+			res, err := b.body.Exec(ns)
+			if err != nil {
+				return nil, err
+			}
+			return res, nil
+		}
+		//иначе перейти к следующему else if
+	}
+
+	//если есть else
+	if stmt.third != nil {
+		//вычислить тело и вернуть результат
+		res, err := stmt.third.body.Exec(ns)
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	}
+
+	//иначе null
+	return val.Null(), nil
+}
+
+func newIf(first *Branch, second []*Branch, third *Branch) Node {
+	return ifStmt{
+		first:  first,
+		second: second,
+		third:  third,
+	}
+}
+
 type Node interface {
 	Exec(ns namespace.Namespace) (val.Val, error)
 }
@@ -262,11 +337,43 @@ func Commands(cmds []Node) Node { return newCommands(cmds) }
 
 func Assign(l, r Node) Node { return newAssign(l, r) }
 
-func DeepEqual(a, b Node) bool {
+func If(first *Branch, second []*Branch, third *Branch) Node { return newIf(first, second, third) }
+
+func DeepEqual(a, b any) bool {
 	if a == nil || b == nil {
 		return a == b
 	}
 	switch aval := a.(type) {
+	case *Branch:
+		bval, ok := b.(*Branch)
+		if !ok {
+			return false
+		}
+
+		if aval == nil || bval == nil {
+			return aval == bval
+		}
+		return DeepEqual(aval.cond, bval.cond) &&
+			DeepEqual(aval.body, bval.body)
+
+	case ifStmt:
+		bval, ok := b.(ifStmt)
+		if !ok || !DeepEqual(aval.first, bval.first) {
+			return false
+		}
+
+		if len(aval.second) != len(bval.second) {
+			return false
+		}
+
+		for i := range aval.second {
+			if !DeepEqual(aval.second[i], bval.second[i]) {
+				return false
+			}
+		}
+
+		return DeepEqual(aval.third, bval.third)
+
 	case value:
 		bval, ok := b.(value)
 		return ok && aval == bval

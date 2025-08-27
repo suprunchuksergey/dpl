@@ -377,6 +377,46 @@ func Test_Assign(t *testing.T) {
 	).exec(t, nil)
 }
 
+func Test_If(t *testing.T) {
+	newRows(
+		newRow(
+			If(NewBranch(
+				Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				nil,
+				nil), val.Text("8 меньше 27"),
+		),
+		newRow(
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				nil,
+				NewBranch(nil, Text("64 не меньше 27"))), val.Text("64 не меньше 27"),
+		),
+		newRow(
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{},
+				NewBranch(nil, Text("64 не меньше 27"))), val.Text("64 не меньше 27"),
+		),
+		newRow(
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))), val.Text("8 меньше 27"),
+		),
+		newRow(
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))), val.Text("8 меньше 27"),
+		),
+	).exec(t, nil)
+}
+
 func Test_IndexAccess(t *testing.T) {
 	newRows(
 		newRow(
@@ -609,6 +649,73 @@ func Test_DeepEqual(t *testing.T) {
 			Commands([]Node{
 				Add(Int(25), Real(2)),
 			}),
+			false,
+		},
+		{
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))),
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))),
+			true,
+		},
+		{
+			If(
+				NewBranch(Gt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))),
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))),
+			false,
+		},
+		{
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))),
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))),
+			false,
+		},
+		{
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				nil),
+			If(
+				NewBranch(Lt(Int(64), Int(27)), Text("64 меньше 27")),
+				[]*Branch{
+					NewBranch(Eq(Int(8), Int(27)), Text("8 равен 27")),
+					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
+				},
+				NewBranch(nil, Text("64 не меньше 27"))),
 			false,
 		},
 	}
