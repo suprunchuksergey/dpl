@@ -70,6 +70,35 @@ users = [{ 'name': 'sergey', 'age': 23 }];
 users[0] = { 'name': 'polina', 'age': 26 };
 users[0]['name']||' '||users[0]['age'];
 `, val.Text("polina 26")},
+		{`
+a = 23;
+b = a;
+a==b;`, val.True()},
+		{`
+a = 23;
+b = a;
+a = 26;
+a!=b;`, val.True()},
+		{`
+a = [23];
+b = a;
+a[0] = 26;
+a[0]==b[0];`, val.True()},
+		{`
+a = [23];
+b = a;
+a[0] = 26;
+a[0];`, val.Int(26)},
+		{`
+a = [23];
+b = a;
+a[0] = 26;
+b[0];`, val.Int(26)},
+		{`
+a = [23];
+b = a;
+b[0] = 26;
+a[0];`, val.Int(26)},
 	}
 
 	for _, test := range tests {
