@@ -50,6 +50,10 @@ const (
 
 	Assign // =
 
+	If   // if
+	Elif // elif
+	Else // else
+
 	EOF // конец файла
 )
 
@@ -95,6 +99,13 @@ func (t token) String() string {
 
 	case Assign:
 		return "="
+
+	case If:
+		return "if"
+	case Elif:
+		return "elif"
+	case Else:
+		return "else"
 
 	case Eq:
 		return "=="

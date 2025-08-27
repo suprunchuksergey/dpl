@@ -406,6 +406,36 @@ func Test_Next(t *testing.T) {
 			},
 		},
 		{
+			data: "if",
+			expected: []lexer{
+				{
+					index: 2,
+					pos:   pos.NewWithStart(1, 3),
+					tok:   token.New(token.If, pos.NewWithStart(1, 1)),
+				},
+			},
+		},
+		{
+			data: "elif",
+			expected: []lexer{
+				{
+					index: 4,
+					pos:   pos.NewWithStart(1, 5),
+					tok:   token.New(token.Elif, pos.NewWithStart(1, 1)),
+				},
+			},
+		},
+		{
+			data: "else",
+			expected: []lexer{
+				{
+					index: 4,
+					pos:   pos.NewWithStart(1, 5),
+					tok:   token.New(token.Else, pos.NewWithStart(1, 1)),
+				},
+			},
+		},
+		{
 			data: "-",
 			expected: []lexer{
 				{

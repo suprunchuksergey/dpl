@@ -291,6 +291,13 @@ func (l *lexer) Next() error {
 			}
 
 			switch res.String() {
+			case "if":
+				l.tok = token.New(token.If, start)
+			case "elif":
+				l.tok = token.New(token.Elif, start)
+			case "else":
+				l.tok = token.New(token.Else, start)
+
 			case "and":
 				l.tok = token.New(token.And, start)
 			case "or":
