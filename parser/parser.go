@@ -27,6 +27,7 @@ layer8 -> ==, !=, <, <=, >, >=
 layer9 -> not
 layer10 -> and
 layer11 -> or
+layer12 -> =
 */
 type parser struct{ lex lexer.Lexer }
 
@@ -432,6 +433,29 @@ func (p *parser) layer11() (node.Node, error) {
 	return n, nil
 }
 
+// =
+func (p *parser) layer12() (node.Node, error) {
+	n, err := p.layer11()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.lex.Tok().Is(token.Assign) {
+		err := p.lex.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		r, err := p.layer11()
+		if err != nil {
+			return nil, err
+		}
+		n = node.Assign(n, r)
+	}
+
+	return n, nil
+}
+
 func (p *parser) Parse() (node.Node, error) {
 	//если это конец
 	if p.lex.Tok().Is(token.EOF) {
@@ -440,7 +464,7 @@ func (p *parser) Parse() (node.Node, error) {
 
 	var cmds []node.Node
 	for {
-		n, err := p.layer11()
+		n, err := p.layer12()
 		if err != nil {
 			return nil, err
 		}

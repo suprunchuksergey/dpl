@@ -43,6 +43,33 @@ func Test_Exec(t *testing.T) {
 		{"[{'tests':50},1,2][0]['tests']*5||'рублей'", val.Text("250рублей")},
 		{"age+num", val.Real(25.3)},
 		{"age+num-[num][0];[5,1,2][0]", val.Int(5)},
+		{`
+users = [8,27,64];
+users[0] = 125-16;
+users[0]+users[1];
+`, val.Int(136)},
+		{`
+users = [8,27,64];
+users[0] = 125-16;
+users = [32,1024];
+users[0]+users[1];
+`, val.Int(1056)},
+		{`
+users = [[8],105];
+users[0][0] = 1056;
+users[0][0];
+`, val.Int(1056)},
+		{`
+users = [{ 'name': 'sergey', 'age': 23 }];
+users[0]['name'] = 'polina';
+users[0]['age'] = 26;
+users[0]['name']||' '||users[0]['age'];
+`, val.Text("polina 26")},
+		{`
+users = [{ 'name': 'sergey', 'age': 23 }];
+users[0] = { 'name': 'polina', 'age': 26 };
+users[0]['name']||' '||users[0]['age'];
+`, val.Text("polina 26")},
 	}
 
 	for _, test := range tests {

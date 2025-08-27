@@ -23,6 +23,7 @@ const (
 	layer9
 	layer10
 	layer11
+	layer12
 )
 
 func call(p *parser, l uint8) (node.Node, error) {
@@ -51,6 +52,8 @@ func call(p *parser, l uint8) (node.Node, error) {
 		return p.layer10()
 	case layer11:
 		return p.layer11()
+	case layer12:
+		return p.layer12()
 	default:
 		panic("неизвестный слой")
 	}
@@ -726,6 +729,118 @@ func Test_layer2(t *testing.T) {
 		r("(19/683)", node.Div(node.Int(19), node.Int(683))),
 		r("(19%683)", node.Rem(node.Int(19), node.Int(683))),
 	).exec(t, layer2)
+}
+
+func Test_layer12(t *testing.T) {
+	rs(
+		r("true", node.True()),
+		r("false", node.False()),
+		r("null", node.Null()),
+		r("19683", node.Int(19683)),
+		r("19.683", node.Real(19.683)),
+		r("'text'", node.Text("text")),
+		r("-19", node.Neg(node.Int(19))),
+		r("--19",
+			node.Neg(
+				node.Neg(
+					node.Int(19)))),
+		r("---19",
+			node.Neg(
+				node.Neg(
+					node.Neg(
+						node.Int(19))))),
+		r("19*683", node.Mul(node.Int(19), node.Int(683))),
+		r("19/683", node.Div(node.Int(19), node.Int(683))),
+		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19*683/-3",
+			node.Div(
+				node.Mul(node.Int(19), node.Int(683)),
+				node.Neg(node.Int(3)))),
+		r("19+683", node.Add(node.Int(19), node.Int(683))),
+		r("19-683", node.Sub(node.Int(19), node.Int(683))),
+		r("19--683", node.Sub(node.Int(19), node.Neg(node.Int(683)))),
+		r("19*683/-3+83",
+			node.Add(
+				node.Div(
+					node.Mul(node.Int(19), node.Int(683)),
+					node.Neg(node.Int(3))),
+				node.Int(83))),
+		r("'hello'||'world'",
+			node.Concat(
+				node.Text("hello"),
+				node.Text("world"))),
+		r("19*683/-3+83||'рублей'",
+			node.Concat(
+				node.Add(
+					node.Div(
+						node.Mul(node.Int(19), node.Int(683)),
+						node.Neg(node.Int(3))),
+					node.Int(83)),
+				node.Text("рублей"),
+			)),
+		r("'рублей'||19*683/-3+83",
+			node.Concat(
+				node.Text("рублей"),
+				node.Add(
+					node.Div(
+						node.Mul(node.Int(19), node.Int(683)),
+						node.Neg(node.Int(3))),
+					node.Int(83)),
+			)),
+		r("19==683", node.Eq(node.Int(19), node.Int(683))),
+		r("19!=683", node.Neq(node.Int(19), node.Int(683))),
+		r("19<683", node.Lt(node.Int(19), node.Int(683))),
+		r("19<=683", node.Lte(node.Int(19), node.Int(683))),
+		r("19>683", node.Gt(node.Int(19), node.Int(683))),
+		r("19>=683", node.Gte(node.Int(19), node.Int(683))),
+		r("19+83==68*-3",
+			node.Eq(
+				node.Add(node.Int(19), node.Int(83)),
+				node.Mul(node.Int(68), node.Neg(node.Int(3))))),
+		r("19==683!=true",
+			node.Neq(
+				node.Eq(node.Int(19), node.Int(683)),
+				node.True())),
+		r("not true", node.Not(node.True())),
+		r("not not true",
+			node.Not(
+				node.Not(
+					node.True()))),
+		r("not not not true",
+			node.Not(
+				node.Not(
+					node.Not(
+						node.True())))),
+		r("not 19+83==68*-3",
+			node.Not(
+				node.Eq(
+					node.Add(node.Int(19), node.Int(83)),
+					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
+		r("true and false", node.And(node.True(), node.False())),
+		r("not 19+83==68*-3 and true",
+			node.And(
+				node.Not(
+					node.Eq(
+						node.Add(node.Int(19), node.Int(83)),
+						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
+				node.True())),
+		r("true or false", node.Or(node.True(), node.False())),
+		r("not 19+83==68*-3 or true",
+			node.Or(
+				node.Not(
+					node.Eq(
+						node.Add(node.Int(19), node.Int(83)),
+						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
+				node.True())),
+		r("true and false or true and true",
+			node.Or(
+				node.And(node.True(), node.False()),
+				node.And(node.True(), node.True()),
+			)),
+		r("name='sergey'", node.Assign(node.Ident("name"), node.Text("sergey"))),
+		r("users[0]='sergey'",
+			node.Assign(node.IndexAccess(node.Ident("users"), node.Int(0)), node.Text("sergey"))),
+	).exec(t, layer12)
 }
 
 func Test_Parse(t *testing.T) {
