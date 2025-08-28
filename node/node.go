@@ -292,6 +292,90 @@ func newIf(first *Branch, second []*Branch, third *Branch) Node {
 	}
 }
 
+type loop struct {
+	rec1  Node
+	rec2  Node //может быть nil
+	value Node
+	body  Node
+}
+
+func (l loop) exec1(ns namespace.Namespace) (val.Val, error) {
+	id, ok := l.rec1.(ident)
+	if !ok {
+		return nil, errors.New("ожидался идентификатор")
+	}
+	name := id.name
+
+	v, err := l.value.Exec(ns)
+	if err != nil {
+		return nil, err
+	}
+
+	if !v.CanIter() {
+		return nil, errors.New("значение не поддерживает итерацию")
+	}
+
+	res := val.Null()
+	for i := range v.Iter() {
+		newns := namespace.WithParent(ns, map[string]val.Val{name: i})
+		body, err := l.body.Exec(newns)
+		if err != nil {
+			return nil, err
+		}
+		res = body
+	}
+
+	return res, nil
+}
+
+func (l loop) exec2(ns namespace.Namespace) (val.Val, error) {
+	id1, ok1 := l.rec1.(ident)
+	if !ok1 {
+		return nil, errors.New("ожидался идентификатор")
+	}
+
+	id2, ok2 := l.rec2.(ident)
+	if !ok2 {
+		return nil, errors.New("ожидался идентификатор")
+	}
+
+	a := id1.name
+	b := id2.name
+
+	v, err := l.value.Exec(ns)
+	if err != nil {
+		return nil, err
+	}
+
+	if !v.CanIter2() {
+		return nil, errors.New("значение не поддерживает итерацию")
+	}
+
+	res := val.Null()
+	for i, j := range v.Iter2() {
+		newns := namespace.WithParent(ns, map[string]val.Val{a: i, b: j})
+		body, err := l.body.Exec(newns)
+		if err != nil {
+			return nil, err
+		}
+		res = body
+	}
+
+	return res, nil
+}
+
+func (l loop) Exec(ns namespace.Namespace) (val.Val, error) {
+	if l.rec1 == nil && l.rec2 == nil {
+		return nil, errors.New("для выполнения требуется по крайней мере один получатель")
+	}
+
+	if l.rec1 != nil && l.rec2 != nil {
+		return l.exec2(ns)
+	}
+
+	return l.exec1(ns)
+}
+
 type Node interface {
 	Exec(ns namespace.Namespace) (val.Val, error)
 }
@@ -336,6 +420,15 @@ func IndexAccess(v, index Node) Node { return newIndexAccess(v, index) }
 func Commands(cmds []Node) Node { return newCommands(cmds) }
 
 func Assign(l, r Node) Node { return newAssign(l, r) }
+
+func For(rec1, rec2, value, body Node) Node {
+	return loop{
+		rec1:  rec1,
+		rec2:  rec2,
+		value: value,
+		body:  body,
+	}
+}
 
 func If(first *Branch, second []*Branch, third *Branch) Node { return newIf(first, second, third) }
 
@@ -445,6 +538,15 @@ func DeepEqual(a, b any) bool {
 				reflect.ValueOf(bval.op).Pointer() &&
 			DeepEqual(aval.left, bval.left) &&
 			DeepEqual(aval.right, bval.right)
+
+	case loop:
+		bval, ok := b.(loop)
+		if !ok {
+			return false
+		}
+
+		return DeepEqual(aval.rec1, bval.rec1) && DeepEqual(aval.rec2, bval.rec2) &&
+			DeepEqual(aval.body, bval.body) && DeepEqual(aval.value, bval.value)
 
 	default:
 		return false

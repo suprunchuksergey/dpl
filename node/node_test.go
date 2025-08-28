@@ -506,6 +506,16 @@ func Test_Expr(t *testing.T) {
 	).exec(t, nil)
 }
 
+func Test_For(t *testing.T) {
+	newRows(
+		newRow(For(Ident("i"), nil, Int(6), Ident("i")), val.Int(5)),
+		newRow(For(Ident("i"), Ident("j"), Array([]Node{
+			Int(256),
+			Real(2.56),
+		}), Concat(Ident("i"), Ident("j"))), val.Text("12.56")),
+	).exec(t, nil)
+}
+
 func Test_DeepEqual(t *testing.T) {
 	tests := []struct {
 		a, b     Node
@@ -716,6 +726,28 @@ func Test_DeepEqual(t *testing.T) {
 					NewBranch(Lt(Int(8), Int(27)), Text("8 меньше 27")),
 				},
 				NewBranch(nil, Text("64 не меньше 27"))),
+			false,
+		},
+		{
+			For(Ident("i"), Ident("j"), Array([]Node{
+				Int(256),
+				Real(2.56),
+			}), Concat(Ident("i"), Ident("j"))),
+			For(Ident("i"), Ident("j"), Array([]Node{
+				Int(256),
+				Real(2.56),
+			}), Concat(Ident("i"), Ident("j"))),
+			true,
+		},
+		{
+			For(Ident("i"), Ident("j"), Array([]Node{
+				Int(256),
+				Real(2.56),
+			}), Concat(Ident("i"), Ident("j"))),
+			For(Ident("i"), nil, Array([]Node{
+				Int(256),
+				Real(2.56),
+			}), Concat(Ident("i"), Ident("j"))),
 			false,
 		},
 	}
