@@ -466,3 +466,93 @@ func Test_textToReal(t *testing.T) {
 		}
 	}
 }
+
+func Test_CanIter(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected bool
+	}{
+		{Int(2187), true},
+		{Real(21.87), true},
+		{Text("text"), true},
+		{Array([]Val{Int(2187)}), true},
+		{Map(map[string]Val{"text": Int(21)}), true},
+		{True(), false},
+		{False(), false},
+		{Null(), false},
+	}
+	for i, test := range tests {
+		n := test.val.CanIter()
+		if n != test.expected {
+			t.Errorf("%d: ожидалось %t, получено %t", i, test.expected, n)
+		}
+	}
+}
+
+func Test_CanIter2(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected bool
+	}{
+		{Text("text"), true},
+		{Array([]Val{Int(2187)}), true},
+		{Map(map[string]Val{"text": Int(21)}), true},
+		{Int(2187), false},
+		{Real(21.87), false},
+		{True(), false},
+		{False(), false},
+		{Null(), false},
+	}
+	for i, test := range tests {
+		n := test.val.CanIter2()
+		if n != test.expected {
+			t.Errorf("%d: ожидалось %t, получено %t", i, test.expected, n)
+		}
+	}
+}
+
+func Test_Iter(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected []Val
+	}{
+		{Int(3), []Val{Int(0), Int(1), Int(2)}},
+		{Real(3.87), []Val{Int(0), Int(1), Int(2)}},
+		{Text("txt"), []Val{Int(0), Int(1), Int(2)}},
+		{Array([]Val{Int(2187), Real(87)}), []Val{Int(0), Int(1)}},
+		{Map(map[string]Val{"text": Int(21)}), []Val{Text("text")}},
+	}
+	for i, test := range tests {
+		n := test.val.Iter()
+		var arr []Val
+		for i := range n {
+			arr = append(arr, i)
+		}
+
+		if !reflect.DeepEqual(arr, test.expected) {
+			t.Errorf("%d: ожидалось %s, получено %s", i, test.expected, arr)
+		}
+	}
+}
+
+func Test_Iter2(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected [][2]Val
+	}{
+		{Text("txt"), [][2]Val{{Int(0), Text("t")}, {Int(1), Text("x")}, {Int(2), Text("t")}}},
+		{Array([]Val{Int(2187), Real(8.7)}), [][2]Val{{Int(0), Int(2187)}, {Int(1), Real(8.7)}}},
+		{Map(map[string]Val{"text": Int(21)}), [][2]Val{{Text("text"), Int(21)}}},
+	}
+	for i, test := range tests {
+		n := test.val.Iter2()
+		var arr [][2]Val
+		for i, el := range n {
+			arr = append(arr, [2]Val{i, el})
+		}
+
+		if !reflect.DeepEqual(arr, test.expected) {
+			t.Errorf("%d: ожидалось %s, получено %s", i, test.expected, arr)
+		}
+	}
+}

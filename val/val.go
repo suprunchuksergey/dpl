@@ -2,6 +2,7 @@ package val
 
 import (
 	"fmt"
+	"iter"
 	"strconv"
 	"unicode"
 )
@@ -10,6 +11,103 @@ type val struct {
 	//int64(INT) | float64(REAL) | string(TEXT) | bool(BOOL) |
 	//[]Val(ARRAY) | map[string]Val(MAP) | nil(NULL)
 	val any
+}
+
+func (val val) CanIter() bool {
+	switch val.val.(type) {
+	case int64, float64, /*будет преобразован в int*/
+		string, []Val, map[string]Val:
+		return true
+	}
+	return false
+}
+
+func (val val) CanIter2() bool {
+	switch val.val.(type) {
+	case string, []Val, map[string]Val:
+		return true
+	}
+	return false
+}
+
+func (val val) Iter() iter.Seq[Val] {
+	switch v := val.val.(type) {
+	case int64:
+		return func(yield func(Val) bool) {
+			for i := range v {
+				if !yield(Int(i)) {
+					return
+				}
+			}
+		}
+
+	case float64:
+		return Int(val.ToInt()).Iter()
+
+	case string:
+		return func(yield func(Val) bool) {
+			for i := range []rune(v) {
+				if !yield(Int(int64(i))) {
+					return
+				}
+			}
+		}
+
+	case []Val:
+		return func(yield func(Val) bool) {
+			for i := range v {
+				if !yield(Int(int64(i))) {
+					return
+				}
+			}
+		}
+
+	case map[string]Val:
+		return func(yield func(Val) bool) {
+			for k := range v {
+				if !yield(Text(k)) {
+					return
+				}
+			}
+		}
+
+	default:
+		panic(fmt.Sprintf("невозможно преобразовать %s в ITER", val))
+	}
+}
+
+func (val val) Iter2() iter.Seq2[Val, Val] {
+	switch v := val.val.(type) {
+	case string:
+		return func(yield func(Val, Val) bool) {
+			for i, char := range []rune(v) {
+				if !yield(Int(int64(i)), Text(string(char))) {
+					return
+				}
+			}
+		}
+
+	case []Val:
+		return func(yield func(Val, Val) bool) {
+			for i, el := range v {
+				if !yield(Int(int64(i)), el) {
+					return
+				}
+			}
+		}
+
+	case map[string]Val:
+		return func(yield func(Val, Val) bool) {
+			for k, el := range v {
+				if !yield(Text(k), el) {
+					return
+				}
+			}
+		}
+
+	default:
+		panic(fmt.Sprintf("невозможно преобразовать %s в ITER2", val))
+	}
 }
 
 func (val val) ToInt() int64 {
@@ -188,6 +286,12 @@ type Val interface {
 	IsNull() bool
 
 	fmt.Stringer
+
+	CanIter() bool
+	CanIter2() bool
+
+	Iter() iter.Seq[Val]
+	Iter2() iter.Seq2[Val, Val]
 }
 
 func Int(v int64) Val    { return val{v} }
