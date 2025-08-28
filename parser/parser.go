@@ -29,6 +29,7 @@ layer10 -> and
 layer11 -> or
 layer12 -> =
 layer13 -> if
+layer14 -> for .. in
 */
 type parser struct{ lex lexer.Lexer }
 
@@ -512,6 +513,53 @@ func (p *parser) layer13() (node.Node, error) {
 	return node.If(first, second, third), nil
 }
 
+func (p *parser) layer14() (node.Node, error) {
+	if !p.lex.Tok().Is(token.For) {
+		return p.layer13()
+	}
+
+	err := p.lex.Next()
+	if err != nil {
+		return nil, err
+	}
+
+	id1, err := p.layer1()
+	if err != nil {
+		return nil, err
+	}
+
+	var id2 node.Node
+	if p.lex.Tok().Is(token.Comma) {
+		if err = p.lex.Next(); err != nil {
+			return nil, err
+		}
+
+		if id2, err = p.layer1(); err != nil {
+			return nil, err
+		}
+	}
+
+	if !p.lex.Tok().Is(token.In) {
+		return nil, unexpected(p.lex.Tok())
+	}
+
+	if err = p.lex.Next(); err != nil {
+		return nil, err
+	}
+
+	v, err := p.layer12()
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.parseBody()
+	if err != nil {
+		return nil, err
+	}
+
+	return node.For(id1, id2, v, body), nil
+}
+
 func (p *parser) parseBody() (node.Node, error) {
 	if !p.lex.Tok().Is(token.LBrace) {
 		return nil, unexpected(p.lex.Tok())
@@ -523,7 +571,7 @@ func (p *parser) parseBody() (node.Node, error) {
 
 	var nodes []node.Node
 	for {
-		n, err := p.layer13()
+		n, err := p.layer14()
 		if err != nil {
 			return nil, err
 		}
@@ -563,7 +611,7 @@ func (p *parser) Parse() (node.Node, error) {
 
 	var cmds []node.Node
 	for {
-		n, err := p.layer13()
+		n, err := p.layer14()
 		if err != nil {
 			return nil, err
 		}

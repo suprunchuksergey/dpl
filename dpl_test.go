@@ -2,6 +2,7 @@ package dpl
 
 import (
 	"github.com/suprunchuksergey/dpl/val"
+	"reflect"
 	"testing"
 )
 
@@ -114,6 +115,22 @@ else {'8<=81'}`, val.Text("polina")},
 elif 81>81 {'81>81'}
 elif 'polina'=='polina' {'polina';'sergey'}
 else {'8<=81'}`, val.Text("sergey")},
+		{`
+a = [8,16,32];
+for i in a {
+	a[i]=a[i]/2;
+};
+a;
+`, val.Array([]val.Val{val.Int(4), val.Int(8), val.Int(16)}),
+		},
+		{`
+a = [8,16,32];
+for i,k in a {
+	a[i]=k/2;
+};
+a;
+`, val.Array([]val.Val{val.Int(4), val.Int(8), val.Int(16)}),
+		},
 	}
 
 	for _, test := range tests {
@@ -123,7 +140,7 @@ else {'8<=81'}`, val.Text("sergey")},
 			continue
 		}
 
-		if v != test.expected {
+		if !reflect.DeepEqual(v, test.expected) {
 			t.Errorf("%q: ожидалось: %s, получено: %s", test.data, test.expected, v)
 		}
 	}
