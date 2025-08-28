@@ -54,6 +54,9 @@ const (
 	Elif // elif
 	Else // else
 
+	For // for
+	In  // in
+
 	EOF // конец файла
 )
 
@@ -106,6 +109,11 @@ func (t token) String() string {
 		return "elif"
 	case Else:
 		return "else"
+
+	case For:
+		return "for"
+	case In:
+		return "in"
 
 	case Eq:
 		return "=="

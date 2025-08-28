@@ -298,6 +298,11 @@ func (l *lexer) Next() error {
 			case "else":
 				l.tok = token.New(token.Else, start)
 
+			case "for":
+				l.tok = token.New(token.For, start)
+			case "in":
+				l.tok = token.New(token.In, start)
+
 			case "and":
 				l.tok = token.New(token.And, start)
 			case "or":
