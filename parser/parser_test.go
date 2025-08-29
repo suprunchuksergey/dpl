@@ -212,6 +212,31 @@ func Test_layer3(t *testing.T) {
 				node.Int(1),
 			), node.Add(node.Int(3), node.Int(9)),
 		)),
+		r("r(3,9)", node.Call(
+			node.Ident("r"),
+			[]node.Node{node.Int(3), node.Int(9)},
+		)),
+		r("r(3,9,)", node.Call(
+			node.Ident("r"),
+			[]node.Node{node.Int(3), node.Int(9)},
+		)),
+		r("r(3)", node.Call(
+			node.Ident("r"),
+			[]node.Node{node.Int(3)},
+		)),
+		r("r()", node.Call(
+			node.Ident("r"),
+			nil,
+		)),
+		r("[683, 9][1][3+9](9)", node.Call(
+			node.IndexAccess(
+				node.IndexAccess(
+					node.Array([]node.Node{node.Int(683), node.Int(9)}),
+					node.Int(1),
+				), node.Add(node.Int(3), node.Int(9)),
+			),
+			[]node.Node{node.Int(9)},
+		)),
 	).exec(t, layer3)
 }
 

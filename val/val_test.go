@@ -556,3 +556,73 @@ func Test_Iter2(t *testing.T) {
 		}
 	}
 }
+
+func Test_IsFn(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected bool
+	}{
+		{Int(2187), false},
+		{Real(2187), false},
+		{Text("text"), false},
+		{Text(""), false},
+		{Text("2187text"), false},
+		{Text("21.87text"), false},
+		{Text(".87text"), false},
+		{True(), false},
+		{False(), false},
+		{Null(), false},
+		{Fn(func(args []Val) (Val, error) {
+			return nil, nil
+		}, nil), true},
+	}
+	for i, test := range tests {
+		n := test.val.IsFn()
+		if n != test.expected {
+			t.Errorf("%d: ожидалось %t, получено %t", i, test.expected, n)
+		}
+	}
+}
+
+func Test_Names(t *testing.T) {
+	tests := []struct {
+		val      Val
+		expected []string
+	}{
+		{Int(2187), nil},
+		{Real(2187), nil},
+		{Text("text"), nil},
+		{Text(""), nil},
+		{Text("2187text"), nil},
+		{Text("21.87text"), nil},
+		{Text(".87text"), nil},
+		{True(), nil},
+		{False(), nil},
+		{Null(), nil},
+		{Fn(func(args []Val) (Val, error) {
+			return nil, nil
+		}, []string{"text", "real"}), []string{"text", "real"}},
+	}
+	for i, test := range tests {
+		n := test.val.Names()
+		if !reflect.DeepEqual(n, test.expected) {
+			t.Errorf("%d: ожидалось %s, получено %s", i, test.expected, n)
+		}
+	}
+}
+
+func Test_Call(t *testing.T) {
+	fn := Fn(func(args []Val) (Val, error) {
+		return Int(args[0].ToInt() + args[1].ToInt()), nil
+	}, []string{"a", "b"})
+
+	res, err := fn.Call([]Val{Int(3), Int(4)})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if res != Int(7) {
+		t.Errorf("expected 7, got %d", res)
+	}
+}

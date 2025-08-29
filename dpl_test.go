@@ -6,10 +6,20 @@ import (
 	"testing"
 )
 
+func factorial(n int64) int64 {
+	if n <= 1 {
+		return 1
+	}
+	return n * factorial(n-1)
+}
+
 func Test_Exec(t *testing.T) {
 	ns := map[string]val.Val{
 		"age": val.Int(23),
 		"num": val.Real(2.3),
+		"factorial": val.Fn(func(args []val.Val) (val.Val, error) {
+			return val.Int(factorial(args[0].ToInt())), nil
+		}, nil),
 	}
 
 	tests := []struct {
@@ -131,6 +141,10 @@ for i,k in a {
 a;
 `, val.Array([]val.Val{val.Int(4), val.Int(8), val.Int(16)}),
 		},
+		{"factorial(8)", val.Int(40320)},
+		{"factorial(7)", val.Int(5040)},
+		{"factorial(8)+factorial(7)", val.Int(45360)},
+		{"i = factorial(8)+factorial(7);i", val.Int(45360)},
 	}
 
 	for _, test := range tests {

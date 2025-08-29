@@ -329,6 +329,29 @@ func Test_Commands(t *testing.T) {
 	).exec(t, nil)
 }
 
+func Test_Call(t *testing.T) {
+	newRows(
+		newRow(Call(Ident("factorial"), []Node{Int(5)}), val.Int(120)),
+	).exec(t, map[string]val.Val{
+		"factorial": val.Fn(func(args []val.Val) (val.Val, error) {
+			n := args[0].ToInt()
+
+			factorial := func(n int64) int64 {
+				if n <= 1 {
+					return 1
+				}
+				res := int64(1)
+				for i := int64(2); i <= n; i++ {
+					res *= i
+				}
+				return res
+			}
+
+			return val.Int(factorial(n)), nil
+		}, []string{"n"}),
+	})
+}
+
 func Test_Assign(t *testing.T) {
 	newRows(
 		newRow(
@@ -749,6 +772,10 @@ func Test_DeepEqual(t *testing.T) {
 				Real(2.56),
 			}), Concat(Ident("i"), Ident("j"))),
 			false,
+		},
+		{Call(Ident("factorial"), []Node{Int(5)}),
+			Call(Ident("factorial"), []Node{Int(5)}),
+			true,
 		},
 	}
 

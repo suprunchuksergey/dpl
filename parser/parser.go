@@ -195,25 +195,77 @@ func (p *parser) layer3() (node.Node, error) {
 		return nil, err
 	}
 
-	for p.lex.Tok().Is(token.LBrack) {
-		if err = p.lex.Next(); err != nil {
-			return nil, err
-		}
+	for {
+		if p.lex.Tok().Is(token.LBrack) {
+			if err = p.lex.Next(); err != nil {
+				return nil, err
+			}
 
-		i, err := p.layer12()
-		if err != nil {
-			return nil, err
-		}
+			i, err := p.layer12()
+			if err != nil {
+				return nil, err
+			}
 
-		if !p.lex.Tok().Is(token.RBrack) {
-			return nil, unexpected(p.lex.Tok())
-		}
-		err = p.lex.Next()
-		if err != nil {
-			return nil, err
-		}
+			if !p.lex.Tok().Is(token.RBrack) {
+				return nil, unexpected(p.lex.Tok())
+			}
+			if err = p.lex.Next(); err != nil {
+				return nil, err
+			}
 
-		n = node.IndexAccess(n, i)
+			n = node.IndexAccess(n, i)
+		} else if p.lex.Tok().Is(token.LParen) {
+			if err = p.lex.Next(); err != nil {
+				return nil, err
+			}
+
+			if p.lex.Tok().Is(token.RParen) {
+				if err = p.lex.Next(); err != nil {
+					return nil, err
+				}
+				n = node.Call(n, nil)
+				continue
+			}
+
+			var args []node.Node
+			for {
+				i, err := p.layer12()
+				if err != nil {
+					return nil, err
+				}
+				args = append(args, i)
+
+				if p.lex.Tok().Is(token.Comma) {
+					if err = p.lex.Next(); err != nil {
+						return nil, err
+					}
+
+					if p.lex.Tok().Is(token.RParen) {
+						if err = p.lex.Next(); err != nil {
+							return nil, err
+						}
+						n = node.Call(n, args)
+						break
+					}
+
+					continue
+				}
+
+				if !p.lex.Tok().Is(token.RParen) {
+					return nil, unexpected(p.lex.Tok())
+				}
+
+				if err = p.lex.Next(); err != nil {
+					return nil, err
+				}
+
+				n = node.Call(n, args)
+
+				break
+			}
+		} else {
+			break
+		}
 	}
 
 	return n, nil

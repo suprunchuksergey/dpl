@@ -7,10 +7,43 @@ import (
 	"unicode"
 )
 
+type Handler func(args []Val) (Val, error)
+
+type function struct {
+	h     Handler
+	names []string
+}
+
 type val struct {
 	//int64(INT) | float64(REAL) | string(TEXT) | bool(BOOL) |
 	//[]Val(ARRAY) | map[string]Val(MAP) | nil(NULL)
 	val any
+}
+
+func (val val) Names() []string {
+	if val.IsFn() {
+		return val.val.(function).names
+	}
+	return nil
+}
+
+func (val val) IsFn() bool {
+	_, ok := val.val.(function)
+	return ok
+}
+
+func (val val) Call(args []Val) (Val, error) {
+	if val.IsFn() {
+		return val.val.(function).h(args)
+	}
+	panic("не функция")
+}
+
+func Fn(handler Handler, names []string) Val {
+	return val{function{
+		h:     handler,
+		names: names,
+	}}
 }
 
 func (val val) CanIter() bool {
@@ -292,6 +325,10 @@ type Val interface {
 
 	Iter() iter.Seq[Val]
 	Iter2() iter.Seq2[Val, Val]
+
+	Names() []string
+	IsFn() bool
+	Call(args []Val) (Val, error)
 }
 
 func Int(v int64) Val    { return val{v} }

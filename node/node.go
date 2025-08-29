@@ -376,6 +376,30 @@ func (l loop) Exec(ns namespace.Namespace) (val.Val, error) {
 	return l.exec1(ns)
 }
 
+type call struct {
+	target Node
+	args   []Node
+}
+
+func (c call) Exec(ns namespace.Namespace) (val.Val, error) {
+	target, err := c.target.Exec(ns)
+	if err != nil {
+		return nil, err
+	}
+	if !target.IsFn() {
+		return nil, fmt.Errorf("%s не функция", target)
+	}
+	args := make([]val.Val, 0, len(c.args))
+	for _, arg := range c.args {
+		v, err := arg.Exec(ns)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, v)
+	}
+	return target.Call(args)
+}
+
 type Node interface {
 	Exec(ns namespace.Namespace) (val.Val, error)
 }
@@ -420,6 +444,13 @@ func IndexAccess(v, index Node) Node { return newIndexAccess(v, index) }
 func Commands(cmds []Node) Node { return newCommands(cmds) }
 
 func Assign(l, r Node) Node { return newAssign(l, r) }
+
+func Call(target Node, args []Node) Node {
+	return call{
+		target: target,
+		args:   args,
+	}
+}
 
 func For(rec1, rec2, value, body Node) Node {
 	return loop{
@@ -547,6 +578,20 @@ func DeepEqual(a, b any) bool {
 
 		return DeepEqual(aval.rec1, bval.rec1) && DeepEqual(aval.rec2, bval.rec2) &&
 			DeepEqual(aval.body, bval.body) && DeepEqual(aval.value, bval.value)
+
+	case call:
+		bval, ok := b.(call)
+		if !ok || len(aval.args) != len(bval.args) {
+			return false
+		}
+
+		for i := range aval.args {
+			if !DeepEqual(aval.args[i], bval.args[i]) {
+				return false
+			}
+		}
+
+		return DeepEqual(aval.target, bval.target)
 
 	default:
 		return false
