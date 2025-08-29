@@ -38,6 +38,62 @@ func (p *parser) layer1() (node.Node, error) {
 	var n node.Node
 
 	switch tok := p.lex.Tok(); tok.ID() {
+	case token.Fn:
+		err := p.lex.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		if !p.lex.Tok().Is(token.LParen) {
+			return nil, unexpected(p.lex.Tok())
+		}
+
+		if err = p.lex.Next(); err != nil {
+			return nil, err
+		}
+
+		var names []node.Node
+		if p.lex.Tok().Is(token.RParen) {
+			if err := p.lex.Next(); err != nil {
+				return nil, err
+			}
+		} else {
+			for {
+				name, err := p.layer1()
+				if err != nil {
+					return nil, err
+				}
+				names = append(names, name)
+
+				if p.lex.Tok().Is(token.Comma) {
+					if err := p.lex.Next(); err != nil {
+						return nil, err
+					}
+
+					if p.lex.Tok().Is(token.RParen) {
+						break
+					}
+
+					continue
+				}
+
+				if !p.lex.Tok().Is(token.RParen) {
+					return nil, unexpected(p.lex.Tok())
+				}
+
+				if err = p.lex.Next(); err != nil {
+					return nil, err
+				}
+				break
+			}
+		}
+
+		body, err := p.parseBody()
+		if err != nil {
+			return nil, err
+		}
+		return node.Fn(body, names), nil
+
 	case token.Ident:
 		n = node.Ident(tok.(token.WithValue).Value())
 
@@ -612,6 +668,23 @@ func (p *parser) layer14() (node.Node, error) {
 	return node.For(id1, id2, v, body), nil
 }
 
+func (p *parser) layer15() (node.Node, error) {
+	if !p.lex.Tok().Is(token.Return) {
+		return p.layer14()
+	}
+
+	if err := p.lex.Next(); err != nil {
+		return nil, err
+	}
+
+	v, err := p.layer12()
+	if err != nil {
+		return nil, err
+	}
+
+	return node.Return(v), nil
+}
+
 func (p *parser) parseBody() (node.Node, error) {
 	if !p.lex.Tok().Is(token.LBrace) {
 		return nil, unexpected(p.lex.Tok())
@@ -623,7 +696,7 @@ func (p *parser) parseBody() (node.Node, error) {
 
 	var nodes []node.Node
 	for {
-		n, err := p.layer14()
+		n, err := p.layer15()
 		if err != nil {
 			return nil, err
 		}

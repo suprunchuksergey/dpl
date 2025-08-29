@@ -400,6 +400,61 @@ func (c call) Exec(ns namespace.Namespace) (val.Val, error) {
 	return target.Call(args)
 }
 
+type returnerr struct {
+	v val.Val
+}
+
+func (r returnerr) Error() string {
+	return "return может использоваться только в контексте функции"
+}
+
+type fnreturn struct{ val Node }
+
+func (f fnreturn) Exec(ns namespace.Namespace) (val.Val, error) {
+	v, err := f.val.Exec(ns)
+	if err != nil {
+		return nil, err
+	}
+	return nil, returnerr{v}
+}
+
+type fn struct {
+	names []Node
+	body  Node
+}
+
+func (f fn) Exec(ns namespace.Namespace) (val.Val, error) {
+	names := make([]string, 0, len(f.names))
+	for _, name := range f.names {
+		if _, ok := name.(ident); !ok {
+			return nil, errors.New("неверный аргумент функции")
+		}
+		names = append(names, name.(ident).name)
+	}
+
+	return val.Fn(func(args []val.Val) (val.Val, error) {
+		m := make(map[string]val.Val)
+
+		for i, name := range names {
+			if i >= len(names) {
+				m[name] = val.Null()
+				continue
+			}
+			m[name] = args[i]
+		}
+
+		newns := namespace.WithParent(ns, m)
+		res, err := f.body.Exec(newns)
+		if err != nil {
+			if err, ok := err.(returnerr); ok {
+				return err.v, nil
+			}
+			return nil, err
+		}
+		return res, nil
+	}, names), nil
+}
+
 type Node interface {
 	Exec(ns namespace.Namespace) (val.Val, error)
 }
@@ -450,6 +505,14 @@ func Call(target Node, args []Node) Node {
 		target: target,
 		args:   args,
 	}
+}
+
+func Return(val Node) Node {
+	return fnreturn{val}
+}
+
+func Fn(body Node, names []Node) Node {
+	return fn{names: names, body: body}
 }
 
 func For(rec1, rec2, value, body Node) Node {
@@ -592,6 +655,18 @@ func DeepEqual(a, b any) bool {
 		}
 
 		return DeepEqual(aval.target, bval.target)
+
+	case fn:
+		bval, ok := b.(fn)
+		if !ok || len(aval.names) != len(bval.names) {
+			return false
+		}
+		for i := range aval.names {
+			if !DeepEqual(aval.names[i], bval.names[i]) {
+				return false
+			}
+		}
+		return DeepEqual(aval.body, bval.body)
 
 	default:
 		return false

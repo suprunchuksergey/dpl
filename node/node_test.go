@@ -539,6 +539,22 @@ func Test_For(t *testing.T) {
 	).exec(t, nil)
 }
 
+func Test_Fn(t *testing.T) {
+	newRows(
+		newRow(
+			Call(Fn(Int(6), nil), nil), val.Int(6)),
+		newRow(
+			Call(Fn(Ident("n"), []Node{Ident("n")}), []Node{Int(6)}), val.Int(6)),
+		newRow(
+			Call(Fn(Concat(Ident("name"), Ident("age")),
+				[]Node{Ident("name"), Ident("age")}), []Node{Text("сергей"), Int(23)}), val.Text("сергей23")),
+		newRow(
+			Call(Fn(Return(Ident("n")), []Node{Ident("n")}), []Node{Int(6)}), val.Int(6)),
+		newRow(
+			Call(Fn(Commands([]Node{Return(Ident("n")), Int(23)}), []Node{Ident("n")}), []Node{Int(6)}), val.Int(6)),
+	).exec(t, nil)
+}
+
 func Test_DeepEqual(t *testing.T) {
 	tests := []struct {
 		a, b     Node

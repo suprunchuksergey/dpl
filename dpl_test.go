@@ -145,6 +145,16 @@ a;
 		{"factorial(7)", val.Int(5040)},
 		{"factorial(8)+factorial(7)", val.Int(45360)},
 		{"i = factorial(8)+factorial(7);i", val.Int(45360)},
+
+		{"i = fn (j,k) {j+k};i(20,30)", val.Int(50)},
+		{"i = fn () {50};i()", val.Int(50)},
+		{"i = fn () {return 50};i()", val.Int(50)},
+
+		{`i = fn (n) {
+		if n > 10 {
+		return 'n > 10'
+	} else {return 'n<=10'}};i(20);
+`, val.Text("n > 10")},
 	}
 
 	for _, test := range tests {
