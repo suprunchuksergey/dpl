@@ -1,13 +1,13 @@
 package dpl
 
 import (
+	"github.com/suprunchuksergey/dpl/internal/namespace"
+	"github.com/suprunchuksergey/dpl/internal/value"
 	"github.com/suprunchuksergey/dpl/lexer"
-	"github.com/suprunchuksergey/dpl/namespace"
 	"github.com/suprunchuksergey/dpl/parser"
-	"github.com/suprunchuksergey/dpl/val"
 )
 
-func Exec(query string, ns map[string]val.Val) (val.Val, error) {
+func Exec(query string, ns map[string]value.Value) (value.Value, error) {
 	lex := lexer.New(query)
 
 	err := lex.Next()

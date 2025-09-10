@@ -2,10 +2,11 @@ package parser
 
 import (
 	"fmt"
+	"github.com/suprunchuksergey/dpl/internal/node"
 	"github.com/suprunchuksergey/dpl/lexer"
-	"github.com/suprunchuksergey/dpl/node"
 	"github.com/suprunchuksergey/dpl/pos"
 	"github.com/suprunchuksergey/dpl/token"
+	"reflect"
 	"testing"
 )
 
@@ -95,7 +96,7 @@ func (r row) exec(t *testing.T, l uint8) {
 		return
 	}
 
-	if node.DeepEqual(r.expected, v) == false {
+	if reflect.DeepEqual(r.expected, v) == false {
 		t.Errorf("%s: ожидалось %v, получено %v",
 			r.data, r.expected, v)
 	}
@@ -122,128 +123,103 @@ func rs(rs ...row) rows {
 
 func Test_layer1(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
 		r("'text'", node.Text("text")),
 		r("fun", node.Ident("fun")),
-		r("[]", node.Array([]node.Node{})),
+		r("[]", node.Array()),
 		r("[true, 19683, 'text',]",
-			node.Array([]node.Node{
-				node.True(), node.Int(19683), node.Text("text"),
-			})),
+			node.Array(
+				node.Bool(true), node.Int(19683), node.Text("text"),
+			)),
 		r("[true, 19683, 'text', [true, 19683, 'text'],]",
-			node.Array([]node.Node{
-				node.True(), node.Int(19683), node.Text("text"),
-				node.Array([]node.Node{node.True(), node.Int(19683), node.Text("text")}),
-			})),
-		r("{}", node.Map(node.Records{})),
+			node.Array(
+				node.Bool(true), node.Int(19683), node.Text("text"),
+				node.Array(node.Bool(true), node.Int(19683), node.Text("text")),
+			)),
+		r("{}", node.Object()),
 		r(
 			"{'text' : 19683}",
-			node.Map(node.Records{
-				node.NewRecord(node.Text("text"), node.Int(19683)),
-			})),
+			node.Object(
+				node.KV{node.Text("text"), node.Int(19683)},
+			)),
 		r(
 			"{'text' : 19683,}",
-			node.Map(node.Records{
-				node.NewRecord(node.Text("text"), node.Int(19683)),
-			})),
-		r(
-			"{'text'||19 : 19683, 3*9 : 19.683/683,}",
-			node.Map(node.Records{
-				node.NewRecord(
-					node.Concat(node.Text("text"), node.Int(19)),
-					node.Int(19683)),
-				node.NewRecord(
-					node.Mul(node.Int(3), node.Int(9)),
-					node.Div(node.Real(19.683), node.Int(683))),
-			})),
+			node.Object(
+				node.KV{node.Text("text"), node.Int(19683)},
+			)),
 	).exec(t, layer1)
 }
 
 func Test_layer3(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
 		r("'text'", node.Text("text")),
-		r("[]", node.Array([]node.Node{})),
+		r("[]", node.Array()),
 		r("[true, 19683, 'text',]",
-			node.Array([]node.Node{
-				node.True(), node.Int(19683), node.Text("text"),
-			})),
+			node.Array(
+				node.Bool(true), node.Int(19683), node.Text("text"),
+			)),
 		r("[true, 19683, 'text', [true, 19683, 'text'],]",
-			node.Array([]node.Node{
-				node.True(), node.Int(19683), node.Text("text"),
-				node.Array([]node.Node{node.True(), node.Int(19683), node.Text("text")}),
-			})),
-		r("{}", node.Map(node.Records{})),
+			node.Array(
+				node.Bool(true), node.Int(19683), node.Text("text"),
+				node.Array(node.Bool(true), node.Int(19683), node.Text("text")),
+			)),
+		r("{}", node.Object()),
 		r(
 			"{'text' : 19683}",
-			node.Map(node.Records{
-				node.NewRecord(node.Text("text"), node.Int(19683)),
-			})),
+			node.Object(node.KV{node.Text("text"), node.Int(19683)})),
 		r(
 			"{'text' : 19683,}",
-			node.Map(node.Records{
-				node.NewRecord(node.Text("text"), node.Int(19683)),
-			})),
-		r(
-			"{'text'||19 : 19683, 3*9 : 19.683/683,}",
-			node.Map(node.Records{
-				node.NewRecord(
-					node.Concat(node.Text("text"), node.Int(19)),
-					node.Int(19683)),
-				node.NewRecord(
-					node.Mul(node.Int(3), node.Int(9)),
-					node.Div(node.Real(19.683), node.Int(683))),
-			})),
-		r("[683, 9][1]", node.IndexAccess(
-			node.Array([]node.Node{node.Int(683), node.Int(9)}),
+			node.Object(node.KV{node.Text("text"), node.Int(19683)})),
+		r("[683, 9][1]", node.ElByIndex(
+			node.Array(node.Int(683), node.Int(9)),
 			node.Int(1),
 		)),
-		r("[683, 9][1][3+9]", node.IndexAccess(
-			node.IndexAccess(
-				node.Array([]node.Node{node.Int(683), node.Int(9)}),
+		r("[683, 9][1][3+9]", node.ElByIndex(
+			node.ElByIndex(
+				node.Array(node.Int(683), node.Int(9)),
 				node.Int(1),
 			), node.Add(node.Int(3), node.Int(9)),
 		)),
 		r("r(3,9)", node.Call(
 			node.Ident("r"),
-			[]node.Node{node.Int(3), node.Int(9)},
+			node.Int(3), node.Int(9),
 		)),
 		r("r(3,9,)", node.Call(
 			node.Ident("r"),
-			[]node.Node{node.Int(3), node.Int(9)},
+			node.Int(3), node.Int(9),
 		)),
 		r("r(3)", node.Call(
 			node.Ident("r"),
-			[]node.Node{node.Int(3)},
+			node.Int(3),
 		)),
 		r("r()", node.Call(
 			node.Ident("r"),
-			nil,
 		)),
 		r("[683, 9][1][3+9](9)", node.Call(
-			node.IndexAccess(
-				node.IndexAccess(
-					node.Array([]node.Node{node.Int(683), node.Int(9)}),
+			node.ElByIndex(
+				node.ElByIndex(
+					node.Array(node.Int(683), node.Int(9)),
 					node.Int(1),
 				), node.Add(node.Int(3), node.Int(9)),
 			),
-			[]node.Node{node.Int(9)},
+			node.Int(9),
 		)),
 	).exec(t, layer3)
 }
 
 func Test_layer4(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -263,8 +239,8 @@ func Test_layer4(t *testing.T) {
 
 func Test_layer5(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -281,7 +257,7 @@ func Test_layer5(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -291,8 +267,8 @@ func Test_layer5(t *testing.T) {
 
 func Test_layer6(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -309,7 +285,7 @@ func Test_layer6(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -328,8 +304,8 @@ func Test_layer6(t *testing.T) {
 
 func Test_layer7(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -346,7 +322,7 @@ func Test_layer7(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -387,8 +363,8 @@ func Test_layer7(t *testing.T) {
 
 func Test_layer8(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -405,7 +381,7 @@ func Test_layer8(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -454,14 +430,14 @@ func Test_layer8(t *testing.T) {
 		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
-				node.True())),
+				node.Bool(true))),
 	).exec(t, layer8)
 }
 
 func Test_layer9(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -478,7 +454,7 @@ func Test_layer9(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -527,17 +503,17 @@ func Test_layer9(t *testing.T) {
 		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
-				node.True())),
-		r("not true", node.Not(node.True())),
+				node.Bool(true))),
+		r("not true", node.Not(node.Bool(true))),
 		r("not not true",
 			node.Not(
 				node.Not(
-					node.True()))),
+					node.Bool(true)))),
 		r("not not not true",
 			node.Not(
 				node.Not(
 					node.Not(
-						node.True())))),
+						node.Bool(true))))),
 		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
@@ -548,8 +524,8 @@ func Test_layer9(t *testing.T) {
 
 func Test_layer10(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -566,7 +542,7 @@ func Test_layer10(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -615,37 +591,37 @@ func Test_layer10(t *testing.T) {
 		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
-				node.True())),
-		r("not true", node.Not(node.True())),
+				node.Bool(true))),
+		r("not true", node.Not(node.Bool(true))),
 		r("not not true",
 			node.Not(
 				node.Not(
-					node.True()))),
+					node.Bool(true)))),
 		r("not not not true",
 			node.Not(
 				node.Not(
 					node.Not(
-						node.True())))),
+						node.Bool(true))))),
 		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
-		r("true and false", node.And(node.True(), node.False())),
+		r("true and false", node.And(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 and true",
 			node.And(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
+				node.Bool(true))),
 	).exec(t, layer10)
 }
 
 func Test_layer11(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -662,7 +638,7 @@ func Test_layer11(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -711,64 +687,64 @@ func Test_layer11(t *testing.T) {
 		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
-				node.True())),
-		r("not true", node.Not(node.True())),
+				node.Bool(true))),
+		r("not true", node.Not(node.Bool(true))),
 		r("not not true",
 			node.Not(
 				node.Not(
-					node.True()))),
+					node.Bool(true)))),
 		r("not not not true",
 			node.Not(
 				node.Not(
 					node.Not(
-						node.True())))),
+						node.Bool(true))))),
 		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
-		r("true and false", node.And(node.True(), node.False())),
+		r("true and false", node.And(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 and true",
 			node.And(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
-		r("true or false", node.Or(node.True(), node.False())),
+				node.Bool(true))),
+		r("true or false", node.Or(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 or true",
 			node.Or(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
+				node.Bool(true))),
 		r("true and false or true and true",
 			node.Or(
-				node.And(node.True(), node.False()),
-				node.And(node.True(), node.True()),
+				node.And(node.Bool(true), node.Bool(false)),
+				node.And(node.Bool(true), node.Bool(true)),
 			)),
 	).exec(t, layer11)
 }
 
 func Test_layer2(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
 		r("'text'", node.Text("text")),
 		r("(19*683)", node.Mul(node.Int(19), node.Int(683))),
 		r("(19/683)", node.Div(node.Int(19), node.Int(683))),
-		r("(19%683)", node.Rem(node.Int(19), node.Int(683))),
+		r("(19%683)", node.Mod(node.Int(19), node.Int(683))),
 	).exec(t, layer2)
 }
 
 func Test_layer12(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -785,7 +761,7 @@ func Test_layer12(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -834,53 +810,53 @@ func Test_layer12(t *testing.T) {
 		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
-				node.True())),
-		r("not true", node.Not(node.True())),
+				node.Bool(true))),
+		r("not true", node.Not(node.Bool(true))),
 		r("not not true",
 			node.Not(
 				node.Not(
-					node.True()))),
+					node.Bool(true)))),
 		r("not not not true",
 			node.Not(
 				node.Not(
 					node.Not(
-						node.True())))),
+						node.Bool(true))))),
 		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
-		r("true and false", node.And(node.True(), node.False())),
+		r("true and false", node.And(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 and true",
 			node.And(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
-		r("true or false", node.Or(node.True(), node.False())),
+				node.Bool(true))),
+		r("true or false", node.Or(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 or true",
 			node.Or(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
+				node.Bool(true))),
 		r("true and false or true and true",
 			node.Or(
-				node.And(node.True(), node.False()),
-				node.And(node.True(), node.True()),
+				node.And(node.Bool(true), node.Bool(false)),
+				node.And(node.Bool(true), node.Bool(true)),
 			)),
-		r("name='sergey'", node.Assign(node.Ident("name"), node.Text("sergey"))),
+		r("name='sergey'", node.Set(node.Ident("name"), node.Text("sergey"))),
 		r("users[0]='sergey'",
-			node.Assign(node.IndexAccess(node.Ident("users"), node.Int(0)), node.Text("sergey"))),
+			node.Set(node.ElByIndex(node.Ident("users"), node.Int(0)), node.Text("sergey"))),
 	).exec(t, layer12)
 }
 
 func Test_layer13(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -897,7 +873,7 @@ func Test_layer13(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -946,84 +922,65 @@ func Test_layer13(t *testing.T) {
 		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
-				node.True())),
-		r("not true", node.Not(node.True())),
+				node.Bool(true))),
+		r("not true", node.Not(node.Bool(true))),
 		r("not not true",
 			node.Not(
 				node.Not(
-					node.True()))),
+					node.Bool(true)))),
 		r("not not not true",
 			node.Not(
 				node.Not(
 					node.Not(
-						node.True())))),
+						node.Bool(true))))),
 		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
-		r("true and false", node.And(node.True(), node.False())),
+		r("true and false", node.And(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 and true",
 			node.And(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
-		r("true or false", node.Or(node.True(), node.False())),
+				node.Bool(true))),
+		r("true or false", node.Or(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 or true",
 			node.Or(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
+				node.Bool(true))),
 		r("true and false or true and true",
 			node.Or(
-				node.And(node.True(), node.False()),
-				node.And(node.True(), node.True()),
+				node.And(node.Bool(true), node.Bool(false)),
+				node.And(node.Bool(true), node.Bool(true)),
 			)),
-		r("name='sergey'", node.Assign(node.Ident("name"), node.Text("sergey"))),
+		r("name='sergey'", node.Set(node.Ident("name"), node.Text("sergey"))),
 		r("users[0]='sergey'",
-			node.Assign(node.IndexAccess(node.Ident("users"), node.Int(0)), node.Text("sergey"))),
+			node.Set(node.ElByIndex(node.Ident("users"), node.Int(0)), node.Text("sergey"))),
 		r("if 19<68 {68;19}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
+			node.If(node.Branch{node.Lt(node.Int(19), node.Int(68)), node.Block(
 				node.Int(68),
 				node.Int(19),
-			})), nil, nil),
+			)}),
 		),
 		r("if 19<68 {68;19} else {'sergey'}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
+			node.If(node.Branch{node.Lt(node.Int(19), node.Int(68)), node.Block(
 				node.Int(68),
 				node.Int(19),
-			})), nil, node.NewBranch(nil, node.Commands([]node.Node{node.Text("sergey")}))),
-		),
-		r("if 19<68 {68;19} elif 19>68 {19} else {'sergey'}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
-				node.Int(68),
-				node.Int(19),
-			})),
-				[]*node.Branch{node.NewBranch(node.Gt(node.Int(19), node.Int(68)), node.Commands([]node.Node{node.Int(19)}))},
-				node.NewBranch(nil, node.Commands([]node.Node{node.Text("sergey")}))),
-		),
-		r("if 19<68 {68;19} elif 19>68 {19} elif 19==68 {6} else {'sergey'}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
-				node.Int(68),
-				node.Int(19),
-			})),
-				[]*node.Branch{
-					node.NewBranch(node.Gt(node.Int(19), node.Int(68)), node.Commands([]node.Node{node.Int(19)})),
-					node.NewBranch(node.Eq(node.Int(19), node.Int(68)), node.Commands([]node.Node{node.Int(6)})),
-				},
-				node.NewBranch(nil, node.Commands([]node.Node{node.Text("sergey")}))),
+			)}, node.Branch{node.Bool(true), node.Block(node.Text("sergey"))}),
 		),
 	).exec(t, layer13)
 }
 
 func Test_layer14(t *testing.T) {
 	rs(
-		r("true", node.True()),
-		r("false", node.False()),
+		r("true", node.Bool(true)),
+		r("false", node.Bool(false)),
 		r("null", node.Null()),
 		r("19683", node.Int(19683)),
 		r("19.683", node.Real(19.683)),
@@ -1040,7 +997,7 @@ func Test_layer14(t *testing.T) {
 						node.Int(19))))),
 		r("19*683", node.Mul(node.Int(19), node.Int(683))),
 		r("19/683", node.Div(node.Int(19), node.Int(683))),
-		r("19%683", node.Rem(node.Int(19), node.Int(683))),
+		r("19%683", node.Mod(node.Int(19), node.Int(683))),
 		r("19*683/-3",
 			node.Div(
 				node.Mul(node.Int(19), node.Int(683)),
@@ -1089,88 +1046,57 @@ func Test_layer14(t *testing.T) {
 		r("19==683!=true",
 			node.Neq(
 				node.Eq(node.Int(19), node.Int(683)),
-				node.True())),
-		r("not true", node.Not(node.True())),
+				node.Bool(true))),
+		r("not true", node.Not(node.Bool(true))),
 		r("not not true",
 			node.Not(
 				node.Not(
-					node.True()))),
+					node.Bool(true)))),
 		r("not not not true",
 			node.Not(
 				node.Not(
 					node.Not(
-						node.True())))),
+						node.Bool(true))))),
 		r("not 19+83==68*-3",
 			node.Not(
 				node.Eq(
 					node.Add(node.Int(19), node.Int(83)),
 					node.Mul(node.Int(68), node.Neg(node.Int(3)))))),
-		r("true and false", node.And(node.True(), node.False())),
+		r("true and false", node.And(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 and true",
 			node.And(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
-		r("true or false", node.Or(node.True(), node.False())),
+				node.Bool(true))),
+		r("true or false", node.Or(node.Bool(true), node.Bool(false))),
 		r("not 19+83==68*-3 or true",
 			node.Or(
 				node.Not(
 					node.Eq(
 						node.Add(node.Int(19), node.Int(83)),
 						node.Mul(node.Int(68), node.Neg(node.Int(3))))),
-				node.True())),
+				node.Bool(true))),
 		r("true and false or true and true",
 			node.Or(
-				node.And(node.True(), node.False()),
-				node.And(node.True(), node.True()),
+				node.And(node.Bool(true), node.Bool(false)),
+				node.And(node.Bool(true), node.Bool(true)),
 			)),
-		r("name='sergey'", node.Assign(node.Ident("name"), node.Text("sergey"))),
+		r("name='sergey'", node.Set(node.Ident("name"), node.Text("sergey"))),
 		r("users[0]='sergey'",
-			node.Assign(node.IndexAccess(node.Ident("users"), node.Int(0)), node.Text("sergey"))),
-		r("if 19<68 {68;19}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
-				node.Int(68),
-				node.Int(19),
-			})), nil, nil),
-		),
-		r("if 19<68 {68;19} else {'sergey'}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
-				node.Int(68),
-				node.Int(19),
-			})), nil, node.NewBranch(nil, node.Commands([]node.Node{node.Text("sergey")}))),
-		),
-		r("if 19<68 {68;19} elif 19>68 {19} else {'sergey'}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
-				node.Int(68),
-				node.Int(19),
-			})),
-				[]*node.Branch{node.NewBranch(node.Gt(node.Int(19), node.Int(68)), node.Commands([]node.Node{node.Int(19)}))},
-				node.NewBranch(nil, node.Commands([]node.Node{node.Text("sergey")}))),
-		),
-		r("if 19<68 {68;19} elif 19>68 {19} elif 19==68 {6} else {'sergey'}",
-			node.If(node.NewBranch(node.Lt(node.Int(19), node.Int(68)), node.Commands([]node.Node{
-				node.Int(68),
-				node.Int(19),
-			})),
-				[]*node.Branch{
-					node.NewBranch(node.Gt(node.Int(19), node.Int(68)), node.Commands([]node.Node{node.Int(19)})),
-					node.NewBranch(node.Eq(node.Int(19), node.Int(68)), node.Commands([]node.Node{node.Int(6)})),
-				},
-				node.NewBranch(nil, node.Commands([]node.Node{node.Text("sergey")}))),
-		),
+			node.Set(node.ElByIndex(node.Ident("users"), node.Int(0)), node.Text("sergey"))),
 
 		r("for i in a {i}",
-			node.For(node.Ident("i"), nil, node.Ident("a"), node.Commands([]node.Node{
+			node.For([]node.Node{node.Ident("i")}, node.Ident("a"), node.Block(
 				node.Ident("i"),
-			})),
+			)),
 		),
 		r("for i,j in a {i;j}",
-			node.For(node.Ident("i"), node.Ident("j"), node.Ident("a"), node.Commands([]node.Node{
+			node.For([]node.Node{node.Ident("i"), node.Ident("j")}, node.Ident("a"), node.Block(
 				node.Ident("i"),
 				node.Ident("j"),
-			})),
+			)),
 		),
 	).exec(t, layer14)
 }
@@ -1178,45 +1104,45 @@ func Test_layer14(t *testing.T) {
 func Test_Parse(t *testing.T) {
 	rs(
 		r("81+16*16",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Add(
 					node.Int(81),
 					node.Mul(node.Int(16), node.Int(16)),
 				),
-			}),
+			),
 		),
 		r("(81+16)*16",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Mul(
 					node.Add(node.Int(81), node.Int(16)),
 					node.Int(16),
 				),
-			}),
+			),
 		),
 		r("(81+16)*-(64/16)",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Mul(
 					node.Add(node.Int(81), node.Int(16)),
 					node.Neg(node.Div(node.Int(64), node.Int(16))),
 				),
-			}),
+			),
 		),
 		r("(81+16)*-(64/16)<16%6-1",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Lt(
 					node.Mul(
 						node.Add(node.Int(81), node.Int(16)),
 						node.Neg(node.Div(node.Int(64), node.Int(16))),
 					),
 					node.Sub(
-						node.Rem(node.Int(16), node.Int(6)),
+						node.Mod(node.Int(16), node.Int(6)),
 						node.Int(1),
 					),
 				),
-			}),
+			),
 		),
 		r("(81+16)*-(64/16)<16%6-1 and not true",
-			node.Commands([]node.Node{
+			node.Block(
 				node.And(
 					node.Lt(
 						node.Mul(
@@ -1224,16 +1150,16 @@ func Test_Parse(t *testing.T) {
 							node.Neg(node.Div(node.Int(64), node.Int(16))),
 						),
 						node.Sub(
-							node.Rem(node.Int(16), node.Int(6)),
+							node.Mod(node.Int(16), node.Int(6)),
 							node.Int(1),
 						),
 					),
-					node.Not(node.True()),
+					node.Not(node.Bool(true)),
 				),
-			}),
+			),
 		),
 		r("(81+16)*-(64/16)<16%6-1 and not true or not not true",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Or(
 					node.And(
 						node.Lt(
@@ -1242,18 +1168,18 @@ func Test_Parse(t *testing.T) {
 								node.Neg(node.Div(node.Int(64), node.Int(16))),
 							),
 							node.Sub(
-								node.Rem(node.Int(16), node.Int(6)),
+								node.Mod(node.Int(16), node.Int(6)),
 								node.Int(1),
 							),
 						),
-						node.Not(node.True()),
+						node.Not(node.Bool(true)),
 					),
-					node.Not(node.Not(node.True())),
+					node.Not(node.Not(node.Bool(true))),
 				),
-			}),
+			),
 		),
 		r("81+16*16;16*81",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Add(
 					node.Int(81),
 					node.Mul(node.Int(16), node.Int(16)),
@@ -1262,10 +1188,10 @@ func Test_Parse(t *testing.T) {
 					node.Int(16),
 					node.Int(81),
 				),
-			}),
+			),
 		),
 		r("81+16*16;16*81;",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Add(
 					node.Int(81),
 					node.Mul(node.Int(16), node.Int(16)),
@@ -1274,7 +1200,7 @@ func Test_Parse(t *testing.T) {
 					node.Int(16),
 					node.Int(81),
 				),
-			}),
+			),
 		),
 	).exec(t, parse)
 }
@@ -1282,45 +1208,45 @@ func Test_Parse(t *testing.T) {
 func Test_parseBody(t *testing.T) {
 	rs(
 		r("{81+16*16}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Add(
 					node.Int(81),
 					node.Mul(node.Int(16), node.Int(16)),
 				),
-			}),
+			),
 		),
 		r("{(81+16)*16}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Mul(
 					node.Add(node.Int(81), node.Int(16)),
 					node.Int(16),
 				),
-			}),
+			),
 		),
 		r("{(81+16)*-(64/16)}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Mul(
 					node.Add(node.Int(81), node.Int(16)),
 					node.Neg(node.Div(node.Int(64), node.Int(16))),
 				),
-			}),
+			),
 		),
 		r("{(81+16)*-(64/16)<16%6-1}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Lt(
 					node.Mul(
 						node.Add(node.Int(81), node.Int(16)),
 						node.Neg(node.Div(node.Int(64), node.Int(16))),
 					),
 					node.Sub(
-						node.Rem(node.Int(16), node.Int(6)),
+						node.Mod(node.Int(16), node.Int(6)),
 						node.Int(1),
 					),
 				),
-			}),
+			),
 		),
 		r("{(81+16)*-(64/16)<16%6-1 and not true}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.And(
 					node.Lt(
 						node.Mul(
@@ -1328,16 +1254,16 @@ func Test_parseBody(t *testing.T) {
 							node.Neg(node.Div(node.Int(64), node.Int(16))),
 						),
 						node.Sub(
-							node.Rem(node.Int(16), node.Int(6)),
+							node.Mod(node.Int(16), node.Int(6)),
 							node.Int(1),
 						),
 					),
-					node.Not(node.True()),
+					node.Not(node.Bool(true)),
 				),
-			}),
+			),
 		),
 		r("{(81+16)*-(64/16)<16%6-1 and not true or not not true}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Or(
 					node.And(
 						node.Lt(
@@ -1346,18 +1272,18 @@ func Test_parseBody(t *testing.T) {
 								node.Neg(node.Div(node.Int(64), node.Int(16))),
 							),
 							node.Sub(
-								node.Rem(node.Int(16), node.Int(6)),
+								node.Mod(node.Int(16), node.Int(6)),
 								node.Int(1),
 							),
 						),
-						node.Not(node.True()),
+						node.Not(node.Bool(true)),
 					),
-					node.Not(node.Not(node.True())),
+					node.Not(node.Not(node.Bool(true))),
 				),
-			}),
+			),
 		),
 		r("{81+16*16;16*81}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Add(
 					node.Int(81),
 					node.Mul(node.Int(16), node.Int(16)),
@@ -1366,10 +1292,10 @@ func Test_parseBody(t *testing.T) {
 					node.Int(16),
 					node.Int(81),
 				),
-			}),
+			),
 		),
 		r("{81+16*16;16*81;}",
-			node.Commands([]node.Node{
+			node.Block(
 				node.Add(
 					node.Int(81),
 					node.Mul(node.Int(16), node.Int(16)),
@@ -1378,7 +1304,7 @@ func Test_parseBody(t *testing.T) {
 					node.Int(16),
 					node.Int(81),
 				),
-			}),
+			),
 		),
 	).exec(t, parseBody)
 }

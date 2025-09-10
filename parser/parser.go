@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
+	"github.com/suprunchuksergey/dpl/internal/node"
 	"github.com/suprunchuksergey/dpl/lexer"
-	"github.com/suprunchuksergey/dpl/node"
 	"github.com/suprunchuksergey/dpl/token"
 	"strconv"
 )
@@ -92,7 +92,10 @@ func (p *parser) layer1() (node.Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		return node.Fn(body, names), nil
+		if len(names) == 0 {
+			return node.Function(body), nil
+		}
+		return node.Function(body, names...), nil
 
 	case token.Ident:
 		n = node.Ident(tok.(token.WithValue).Value())
@@ -104,7 +107,7 @@ func (p *parser) layer1() (node.Node, error) {
 		}
 
 		if p.lex.Tok().Is(token.RBrack) {
-			n = node.Array([]node.Node{})
+			n = node.Array()
 			break
 		}
 
@@ -130,7 +133,7 @@ func (p *parser) layer1() (node.Node, error) {
 				break
 			}
 		}
-		n = node.Array(items)
+		n = node.Array(items...)
 
 	case token.LBrace:
 		err := p.lex.Next()
@@ -138,10 +141,10 @@ func (p *parser) layer1() (node.Node, error) {
 			return nil, err
 		}
 
-		records := make(node.Records, 0)
+		records := make([]node.KV, 0)
 
 		if p.lex.Tok().Is(token.RBrace) {
-			n = node.Map(records)
+			n = node.Object()
 			break
 		}
 
@@ -163,7 +166,7 @@ func (p *parser) layer1() (node.Node, error) {
 				return nil, err
 			}
 
-			records = append(records, node.NewRecord(k, v))
+			records = append(records, node.KV{Key: k, Value: v})
 
 			if !p.lex.Tok().OneOf(token.Comma, token.RBrace) {
 				return nil, unexpected(p.lex.Tok())
@@ -180,14 +183,14 @@ func (p *parser) layer1() (node.Node, error) {
 				break
 			}
 		}
-		n = node.Map(records)
+		n = node.Object(records...)
 
 	case token.Null:
 		n = node.Null()
 	case token.True:
-		n = node.True()
+		n = node.Bool(true)
 	case token.False:
-		n = node.False()
+		n = node.Bool(false)
 	case token.Int:
 		v := tok.(token.WithValue).Value()
 		num, err := strconv.ParseInt(v, 10, 64)
@@ -269,7 +272,7 @@ func (p *parser) layer3() (node.Node, error) {
 				return nil, err
 			}
 
-			n = node.IndexAccess(n, i)
+			n = node.ElByIndex(n, i)
 		} else if p.lex.Tok().Is(token.LParen) {
 			if err = p.lex.Next(); err != nil {
 				return nil, err
@@ -279,7 +282,7 @@ func (p *parser) layer3() (node.Node, error) {
 				if err = p.lex.Next(); err != nil {
 					return nil, err
 				}
-				n = node.Call(n, nil)
+				n = node.Call(n)
 				continue
 			}
 
@@ -300,7 +303,7 @@ func (p *parser) layer3() (node.Node, error) {
 						if err = p.lex.Next(); err != nil {
 							return nil, err
 						}
-						n = node.Call(n, args)
+						n = node.Call(n, args...)
 						break
 					}
 
@@ -315,7 +318,7 @@ func (p *parser) layer3() (node.Node, error) {
 					return nil, err
 				}
 
-				n = node.Call(n, args)
+				n = node.Call(n, args...)
 
 				break
 			}
@@ -372,7 +375,7 @@ func (p *parser) layer5() (node.Node, error) {
 		case token.Div:
 			n = node.Div(n, r)
 		default:
-			n = node.Rem(n, r)
+			n = node.Mod(n, r)
 		}
 	}
 
@@ -558,7 +561,7 @@ func (p *parser) layer12() (node.Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		n = node.Assign(n, r)
+		n = node.Set(n, r)
 	}
 
 	return n, nil
@@ -574,6 +577,8 @@ func (p *parser) layer13() (node.Node, error) {
 		return nil, err
 	}
 
+	branches := make([]node.Branch, 0)
+
 	cond, err := p.layer12()
 	if err != nil {
 		return nil, err
@@ -584,9 +589,7 @@ func (p *parser) layer13() (node.Node, error) {
 		return nil, err
 	}
 
-	first := node.NewBranch(cond, body)
-	var second []*node.Branch
-	var third *node.Branch
+	branches = append(branches, node.Branch{Cond: cond, Body: body})
 
 	for p.lex.Tok().Is(token.Elif) {
 		if err := p.lex.Next(); err != nil {
@@ -603,7 +606,7 @@ func (p *parser) layer13() (node.Node, error) {
 			return nil, err
 		}
 
-		second = append(second, node.NewBranch(cond, body))
+		branches = append(branches, node.Branch{Cond: cond, Body: body})
 	}
 
 	if p.lex.Tok().Is(token.Else) {
@@ -615,10 +618,11 @@ func (p *parser) layer13() (node.Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		third = node.NewBranch(nil, body)
+
+		branches = append(branches, node.Branch{Cond: node.Bool(true), Body: body})
 	}
 
-	return node.If(first, second, third), nil
+	return node.If(branches...), nil
 }
 
 func (p *parser) layer14() (node.Node, error) {
@@ -665,7 +669,16 @@ func (p *parser) layer14() (node.Node, error) {
 		return nil, err
 	}
 
-	return node.For(id1, id2, v, body), nil
+	recs := []node.Node{}
+	if id1 != nil {
+		recs = append(recs, id1)
+	}
+
+	if id2 != nil {
+		recs = append(recs, id2)
+	}
+
+	return node.For(recs, v, body), nil
 }
 
 func (p *parser) layer15() (node.Node, error) {
@@ -725,7 +738,7 @@ func (p *parser) parseBody() (node.Node, error) {
 		return nil, err
 	}
 
-	return node.Commands(nodes), nil
+	return node.Block(nodes...), nil
 }
 
 func (p *parser) Parse() (node.Node, error) {
@@ -761,7 +774,7 @@ func (p *parser) Parse() (node.Node, error) {
 		break
 	}
 
-	return node.Commands(cmds), nil
+	return node.Block(cmds...), nil
 }
 
 func newParser(lex lexer.Lexer) *parser { return &parser{lex} }
