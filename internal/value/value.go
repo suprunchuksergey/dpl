@@ -401,11 +401,17 @@ func (v value[T]) Len() (int64, error) {
 
 //КОНСТРУКТОРЫ:
 
-func Int(v int64) Value      { return value[int64]{v} }
-func Real(v float64) Value   { return value[float64]{v} }
-func Text(v string) Value    { return value[string]{v} }
-func Bool(v bool) Value      { return value[bool]{v} }
-func Array(v ...Value) Value { return value[[]Value]{v} }
+func Int(v int64) Value    { return value[int64]{v} }
+func Real(v float64) Value { return value[float64]{v} }
+func Text(v string) Value  { return value[string]{v} }
+func Bool(v bool) Value    { return value[bool]{v} }
+
+func Array(v ...Value) Value {
+	if v == nil {
+		v = make([]Value, 0)
+	}
+	return value[[]Value]{v}
+}
 
 type KV struct{ Key, Value Value }
 

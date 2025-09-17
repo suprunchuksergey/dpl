@@ -779,6 +779,14 @@ func Test_Append(t *testing.T) {
 		expectedValue Value
 		expectedError error
 	}{
+		{Array(), []Value{Int(243)}, Array(Int(243)), nil},
+
+		{Array(), nil, Array(), nil},
+		{Array(), []Value{}, Array(), nil},
+
+		{Array(Int(243)), nil, Array(Int(243)), nil},
+		{Array(Int(243)), []Value{}, Array(Int(243)), nil},
+
 		{Array(Int(243)), []Value{Int(32)}, Array(Int(243), Int(32)), nil},
 		{
 			Array(Int(243), Int(32)),
