@@ -29,6 +29,8 @@ type Value interface {
 	Call(args ...Value) (Value, error)
 
 	Len() (int64, error)
+
+	fmt.Stringer
 }
 
 const (
@@ -54,6 +56,8 @@ type valueT interface {
 }
 
 type value[T valueT] struct{ value T }
+
+func (v value[T]) String() string { return v.Text() }
 
 //МЕТОДЫ КОНВЕРТАЦИИ:
 
