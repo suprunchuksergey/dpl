@@ -30,6 +30,8 @@ type Value interface {
 
 	Len() (int64, error)
 
+	Append(values ...Value) (Value, error)
+
 	fmt.Stringer
 }
 
@@ -56,6 +58,23 @@ type valueT interface {
 }
 
 type value[T valueT] struct{ value T }
+
+func noAppendSupport(typ string) error {
+	return fmt.Errorf("тип %s не поддерживает добавление новых элементов", typ)
+}
+
+func (v value[T]) Append(values ...Value) (Value, error) {
+	arr, ok := any(v.value).([]Value)
+	if !ok {
+		return nil, noAppendSupport(v.Type())
+	}
+
+	newArr := make([]Value, len(arr))
+	copy(newArr, arr)
+	newArr = append(newArr, values...)
+
+	return Array(newArr...), nil
+}
 
 func (v value[T]) String() string { return v.Text() }
 

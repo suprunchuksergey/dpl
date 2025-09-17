@@ -771,3 +771,40 @@ func Test_Len(t *testing.T) {
 		}
 	}
 }
+
+func Test_Append(t *testing.T) {
+	tests := []struct {
+		value         Value
+		values        []Value
+		expectedValue Value
+		expectedError error
+	}{
+		{Array(Int(243)), []Value{Int(32)}, Array(Int(243), Int(32)), nil},
+		{
+			Array(Int(243), Int(32)),
+			[]Value{Bool(true), Text("text")},
+			Array(Int(243), Int(32), Bool(true), Text("text")),
+			nil,
+		},
+
+		{Int(243), nil, nil, noAppendSupport(IntType)},
+		{Real(2.43), nil, nil, noAppendSupport(RealType)},
+		{Bool(false), nil, nil, noAppendSupport(BoolType)},
+		{Bool(true), nil, nil, noAppendSupport(BoolType)},
+		{Text("text"), nil, nil, noAppendSupport(TextType)},
+		{Null(), nil, nil, noAppendSupport(NullType)},
+		{Object(), nil, nil, noAppendSupport(ObjectType)},
+		{Function(nil), nil, nil, noAppendSupport(FunctionType)},
+	}
+
+	for _, test := range tests {
+		v, err := test.value.Append(test.values...)
+
+		if test.expectedError != nil {
+			assert.EqualError(t, err, test.expectedError.Error())
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, test.expectedValue, v)
+		}
+	}
+}
