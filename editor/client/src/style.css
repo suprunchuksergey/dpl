@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: firacode;
+  src: url("./assets/fonts/firacode-variablefont_wght.ttf");
+}
+
+* {
+  font-family: firacode;
+}
