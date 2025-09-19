@@ -1,5 +1,14 @@
 import "./style.css";
 import * as monaco from "monaco-editor";
+import "/public/wasm_exec.js";
+
+const go = new Go();
+WebAssembly.instantiateStreaming(
+  fetch("/public/dpl.wasm"),
+  go.importObject,
+).then((result) => {
+  go.run(result.instance);
+});
 
 document.querySelector("#app").innerHTML = `
     <div class="h-screen w-screen bg-blue-50 flex gap-x-3 p-3">
@@ -10,6 +19,7 @@ document.querySelector("#app").innerHTML = `
 
         <footer class="flex justify-end p-1 border-t border-t-blue-100">
           <button
+            id="run"
             class="bg-blue-600 text-white py-1 px-3 rounded-sm cursor-pointer font-medium"
           >
             Запустить
@@ -18,7 +28,8 @@ document.querySelector("#app").innerHTML = `
       </div>
 
       <div
-        class="w-full h-full bg-[#f5f5f5] shadow-sm border border-blue-100 whitespace-pre-wrap p-3"
+        id="output"
+        class="whitespace-pre-wrap break-words w-full h-full overflow-auto bg-[#f5f5f5] shadow-sm border border-blue-100 p-3"
       ></div>
     </div>
 `;
@@ -70,7 +81,7 @@ monaco.editor.defineTheme("dpl", {
   },
 });
 
-monaco.editor.create(document.getElementById("editor"), {
+const editor = monaco.editor.create(document.getElementById("editor"), {
   value: `
 factorial := (n) -> {
 	if n <= 1 {
@@ -90,3 +101,13 @@ println(sum);
   theme: "dpl",
   language: "dpl",
 });
+
+const output = document.getElementById("output");
+
+const run = document.getElementById("run");
+run.onclick = () => {
+  output.innerText = "";
+  exec(editor.getValue(), (data) => {
+    output.innerText += data;
+  });
+};
