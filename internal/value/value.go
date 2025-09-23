@@ -32,6 +32,8 @@ type Value interface {
 
 	Append(values ...Value) (Value, error)
 
+	Go() any
+
 	fmt.Stringer
 }
 
@@ -48,16 +50,43 @@ const (
 
 type valueT interface {
 	int64 |
-		float64 |
-		string |
-		bool |
-		[]Value |
-		map[string]Value |
-		func(args ...Value) (Value, error) |
-		struct{} //nil
+	float64 |
+	string |
+	bool |
+	[]Value |
+	map[string]Value |
+	func(args ...Value) (Value, error) |
+	struct{} //nil
 }
 
 type value[T valueT] struct{ value T }
+
+func (v value[T]) Go() any {
+	switch v := any(v.value).(type) {
+	case int64, float64, string, bool, func(...Value) (Value, error):
+		return v
+
+	case struct{}:
+		return nil
+
+	case []Value:
+		sl := make([]any, 0, len(v))
+		for _, i := range v {
+			sl = append(sl, i.Go())
+		}
+		return sl
+
+	case map[string]Value:
+		m := make(map[string]any, len(v))
+		for k, v := range v {
+			m[k] = v.Go()
+		}
+		return m
+
+	default:
+		panic("неизвестный тип данных")
+	}
+}
 
 func noAppendSupport(typ string) error {
 	return fmt.Errorf("тип %s не поддерживает добавление новых элементов", typ)

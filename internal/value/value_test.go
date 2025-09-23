@@ -816,3 +816,30 @@ func Test_Append(t *testing.T) {
 		}
 	}
 }
+
+func Test_Go(t *testing.T) {
+	tests := []struct {
+		value    Value
+		expected any
+	}{
+		{Int(81), int64(81)},
+		{Real(8.1), 8.1},
+		{Bool(true), true},
+
+		{Text("text"), "text"},
+		{Text("8.1"), "8.1"},
+
+		{Null(), nil},
+
+		{Array(Int(81), Bool(true)), []any{int64(81), true}},
+
+		{Object(
+			KV{Text("key"), Int(81)},
+			KV{Text("key2"), Bool(true)},
+		), map[string]any{"key": int64(81), "key2": true}},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.expected, test.value.Go())
+	}
+}
