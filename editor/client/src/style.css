@@ -8,3 +8,10 @@
 * {
   font-family: firacode;
 }
+
+.panel {
+  @apply bg-[#f5f5f5]
+  shadow-sm
+  border
+  border-blue-100;
+}

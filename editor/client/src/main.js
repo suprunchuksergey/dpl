@@ -12,25 +12,31 @@ WebAssembly.instantiateStreaming(
 
 document.querySelector("#app").innerHTML = `
     <div class="h-screen w-screen bg-blue-50 flex gap-x-3 p-3">
-      <div
-        class="w-full h-full bg-white shadow-sm border border-blue-100 flex flex-col"
-      >
+      <div class="panel w-full h-full flex flex-col">
         <div id="editor" class="h-full w-full"></div>
 
-        <footer class="flex justify-end p-1 border-t border-t-blue-100">
+        <footer
+          class="flex justify-end p-2 border-t border-t-blue-100 bg-white"
+        >
           <button
             id="run"
-            class="bg-blue-600 text-white py-1 px-3 rounded-sm cursor-pointer font-medium"
+            class="bg-blue-600 text-white py-1 px-3 rounded-md cursor-pointer font-medium text-lg"
           >
             Запустить
           </button>
         </footer>
       </div>
 
-      <div
-        id="output"
-        class="whitespace-pre-wrap break-words w-full h-full overflow-auto bg-[#f5f5f5] shadow-sm border border-blue-100 p-3"
-      ></div>
+      <div class="w-full h-full flex flex-col gap-y-3">
+        <div class="panel w-full h-full p-3 flex items-center justify-center">
+          <div id="display" class="h-full w-full"></div>
+        </div>
+
+        <div
+          id="output"
+          class="panel w-full h-1/3 shrink-0 overflow-auto whitespace-pre-wrap break-words p-3"
+        ></div>
+      </div>
     </div>
 `;
 
