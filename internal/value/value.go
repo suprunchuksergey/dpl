@@ -32,7 +32,7 @@ type Value interface {
 
 	Append(values ...Value) (Value, error)
 
-	Go() any
+	Value() any
 
 	fmt.Stringer
 }
@@ -61,9 +61,10 @@ type valueT interface {
 
 type value[T valueT] struct{ value T }
 
-func (v value[T]) Go() any {
+func (v value[T]) Value() any {
 	switch v := any(v.value).(type) {
-	case int64, float64, string, bool, func(...Value) (Value, error):
+	case int64, float64, string, bool,
+		func(...Value) (Value, error):
 		return v
 
 	case struct{}:
@@ -72,14 +73,14 @@ func (v value[T]) Go() any {
 	case []Value:
 		sl := make([]any, 0, len(v))
 		for _, i := range v {
-			sl = append(sl, i.Go())
+			sl = append(sl, i.Value())
 		}
 		return sl
 
 	case map[string]Value:
 		m := make(map[string]any, len(v))
 		for k, v := range v {
-			m[k] = v.Go()
+			m[k] = v.Value()
 		}
 		return m
 

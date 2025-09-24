@@ -817,7 +817,7 @@ func Test_Append(t *testing.T) {
 	}
 }
 
-func Test_Go(t *testing.T) {
+func Test_Value(t *testing.T) {
 	tests := []struct {
 		value    Value
 		expected any
@@ -837,9 +837,23 @@ func Test_Go(t *testing.T) {
 			KV{Text("key"), Int(81)},
 			KV{Text("key2"), Bool(true)},
 		), map[string]any{"key": int64(81), "key2": true}},
+
+		//тест для функции, возвращаемая функция должна вернуть ожидаемое значение
+		{
+			Function(
+				func(_ ...Value) (Value, error) { return Text("работает"), nil },
+			),
+			Text("работает"),
+		},
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.expected, test.value.Go())
+		v := test.value.Value()
+
+		if test.value.Type() == FunctionType {
+			v, _ = v.(func(...Value) (Value, error))()
+		}
+
+		assert.Equal(t, test.expected, v)
 	}
 }
