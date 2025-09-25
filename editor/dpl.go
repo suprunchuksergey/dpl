@@ -13,8 +13,18 @@ import (
 func exec(_ js.Value, args []js.Value) any {
 	program := args[0].String()
 	output := args[1]
+	draw := args[2]
 
 	m := map[string]value.Value{
+		"draw": value.Function(func(args ...value.Value) (value.Value, error) {
+			draw.Invoke(
+				js.ValueOf(args[0].Value()),
+				js.ValueOf(args[1].Value()),
+				js.ValueOf(args[2].Value()),
+			)
+			return value.Null(), nil
+		}),
+
 		"print": value.Function(func(args ...value.Value) (value.Value, error) {
 			var str strings.Builder
 			for _, arg := range args {

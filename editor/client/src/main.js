@@ -28,7 +28,7 @@ document.querySelector("#app").innerHTML = `
         </footer>
       </div>
 
-      <div class="w-full h-full flex flex-col gap-y-3">
+      <div class="w-full h-full flex flex-col gap-y-3 overflow-hidden">
         <div class="panel w-full aspect-video p-3 flex items-center justify-center">
           <canvas id="display" class="h-full w-full"></canvas>
         </div>
@@ -89,21 +89,23 @@ monaco.editor.defineTheme("dpl", {
 });
 
 const editor = monaco.editor.create(document.getElementById("editor"), {
-  value: `
-factorial := (n) -> {
-	if n <= 1 {
-		return 1;
-	};
-	return n * factorial(n-1);
-};
+  value: `data = [
+    { "date": "Январь 2025", "sales": 120, "visits": 300 },
+    { "date": "Февраль 2025", "sales": 150, "visits": 450 },
+    { "date": "Март 2025", "sales": 200, "visits": 600 },
+    { "date": "Апрель 2025", "sales": 180, "visits": 500 },
+    { "date": "Май 2025", "sales": 250, "visits": 700 }
+];
 
-sum := 0;
-
-for i in 8 {
-	sum = sum + factorial(i);
-};
-
-println(sum);
+draw(
+    "bar",
+    data,
+    {
+        "id": "date",
+        "values": ["sales", "visits"],
+        "title": "График",
+    }
+);
 `,
   theme: "dpl",
   language: "dpl",
@@ -112,12 +114,8 @@ println(sum);
 
 const output = document.getElementById("output");
 
-const run = document.getElementById("run");
-run.onclick = () => {
-  output.innerText = "";
-  exec(editor.getValue(), (data) => {
-    output.innerText += data;
-  });
+const write = (data) => {
+  output.innerText += data;
 };
 
 Chart.defaults.font.family = "firacode";
@@ -145,8 +143,12 @@ Chart.register(...registerables);
 
 const display = document.getElementById("display");
 
+let chart = null;
+
 const draw = (type, data, options) => {
-  new Chart(display, {
+  if (chart) chart.destroy();
+
+  chart = new Chart(display, {
     type,
     data: {
       labels: data.map((row) => row[options.id]),
@@ -189,4 +191,12 @@ const draw = (type, data, options) => {
       },
     },
   });
+};
+
+const run = document.getElementById("run");
+
+run.onclick = () => {
+  output.innerText = "";
+
+  exec(editor.getValue(), write, draw);
 };
