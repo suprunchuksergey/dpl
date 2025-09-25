@@ -1,6 +1,7 @@
 import "./style.css";
 import * as monaco from "monaco-editor";
 import "/public/wasm_exec.js";
+import { Chart, registerables } from "chart.js";
 
 const go = new Go();
 WebAssembly.instantiateStreaming(
@@ -28,13 +29,13 @@ document.querySelector("#app").innerHTML = `
       </div>
 
       <div class="w-full h-full flex flex-col gap-y-3">
-        <div class="panel w-full h-full p-3 flex items-center justify-center">
-          <div id="display" class="h-full w-full"></div>
+        <div class="panel w-full aspect-video p-3 flex items-center justify-center">
+          <canvas id="display" class="h-full w-full"></canvas>
         </div>
 
         <div
           id="output"
-          class="panel w-full h-1/3 shrink-0 overflow-auto whitespace-pre-wrap break-words p-3"
+          class="panel w-full h-full overflow-auto whitespace-pre-wrap break-words p-3"
         ></div>
       </div>
     </div>
@@ -106,6 +107,7 @@ println(sum);
 `,
   theme: "dpl",
   language: "dpl",
+  fontWeight: "500",
 });
 
 const output = document.getElementById("output");
@@ -115,5 +117,76 @@ run.onclick = () => {
   output.innerText = "";
   exec(editor.getValue(), (data) => {
     output.innerText += data;
+  });
+};
+
+Chart.defaults.font.family = "firacode";
+Chart.defaults.font.size = 14;
+Chart.defaults.font.weight = "bold";
+
+const GRID_COLOR = "#d8d8d8";
+
+const COLORS = ["#377ec0", "#f04f52", "#12baaa", "#5460ac", "#f7891f"];
+const COLORS2 = ["#aa78ff", "#ffa5eb", "#d7ff3c", "#6ef0a0", "#003c3c"];
+
+const isOneColor = (type) => {
+  return ["bar", "line", "radar", "scatter", "bubble"].includes(type);
+};
+
+const hasGrid = (type) => {
+  return ["bar", "bubble", "line", "scatter"].includes(type);
+};
+
+const elByIndex = (arr, index) => {
+  return arr[index % arr.length];
+};
+
+Chart.register(...registerables);
+
+const display = document.getElementById("display");
+
+const draw = (type, data, options) => {
+  new Chart(display, {
+    type,
+    data: {
+      labels: data.map((row) => row[options.id]),
+      datasets: options.values.map((v, index) => {
+        return {
+          label: v,
+          data: data.map((row) => row[v]),
+
+          backgroundColor: isOneColor(type)
+            ? type === "radar"
+              ? elByIndex(COLORS, index) + "75"
+              : elByIndex(COLORS, index)
+            : elByIndex([COLORS, COLORS2], index),
+
+          borderColor: isOneColor(type)
+            ? elByIndex(COLORS, index)
+            : elByIndex([COLORS, COLORS2], index),
+        };
+      }),
+    },
+    options: {
+      aspectRatio: 2,
+      plugins: {
+        legend: { position: "bottom" },
+        title: {
+          display: true,
+          text: options.title,
+          font: { size: 16 },
+        },
+      },
+      scales: {
+        x: {
+          display: hasGrid(type),
+          grid: { color: GRID_COLOR },
+        },
+        y: {
+          display: hasGrid(type),
+          grid: { color: GRID_COLOR },
+        },
+      },
+    },
   });
 };
