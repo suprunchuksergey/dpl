@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"reflect"
 	"strconv"
 	"strings"
 	"unicode"
@@ -50,13 +51,13 @@ const (
 
 type valueT interface {
 	int64 |
-	float64 |
-	string |
-	bool |
-	[]Value |
-	map[string]Value |
-	func(args ...Value) (Value, error) |
-	struct{} //nil
+		float64 |
+		string |
+		bool |
+		[]Value |
+		map[string]Value |
+		func(args ...Value) (Value, error) |
+		struct{} //nil
 }
 
 type value[T valueT] struct{ value T }
@@ -541,4 +542,64 @@ func textToReal(sl []rune) float64 {
 
 	num, _ := strconv.ParseFloat(string(sl[start:end]), 64)
 	return num
+}
+
+func Of(v any) (Value, error) {
+	if v == nil {
+		return Null(), nil
+	}
+
+	switch val := reflect.ValueOf(v); val.Kind() {
+	case
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64:
+		return Int(val.Int()), nil
+
+	case reflect.Float64:
+		return Real(val.Float()), nil
+
+	case reflect.Bool:
+		return Bool(val.Bool()), nil
+
+	case reflect.String:
+		return Text(val.String()), nil
+
+	case reflect.Slice:
+		values := make([]Value, 0, val.Len())
+
+		for i := range val.Len() {
+			v, err := Of(val.Index(i).Interface())
+			if err != nil {
+				return nil, err
+			}
+			values = append(values, v)
+		}
+
+		return Array(values...), nil
+
+	case reflect.Map:
+		values := make([]KV, 0, val.Len())
+
+		for iter := val.MapRange(); iter.Next(); {
+			k, err := Of(iter.Key().Interface())
+			if err != nil {
+				return nil, err
+			}
+
+			v, err := Of(iter.Value().Interface())
+			if err != nil {
+				return nil, err
+			}
+
+			values = append(values, KV{Key: k, Value: v})
+		}
+
+		return Object(values...), nil
+
+	default:
+		return nil, conversionError(val.Kind().String(), "Value")
+	}
 }

@@ -2,6 +2,7 @@ package value
 
 import (
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 	"unicode"
 )
@@ -855,5 +856,70 @@ func Test_Value(t *testing.T) {
 		}
 
 		assert.Equal(t, test.expected, v)
+	}
+}
+
+func Test_Of(t *testing.T) {
+	tests := []struct {
+		value         any
+		expectedValue Value
+		expectedError error
+	}{
+		{int(2147483647), Int(2147483647), nil},
+		{int8(127), Int(127), nil},
+		{int16(32767), Int(32767), nil},
+		{int32(2147483647), Int(2147483647), nil},
+		{int64(9223372036854775807), Int(9223372036854775807), nil},
+
+		{float64(32.767), Real(32.767), nil},
+
+		{false, Bool(false), nil},
+		{true, Bool(true), nil},
+
+		{"test", Text("test"), nil},
+
+		{nil, Null(), nil},
+
+		{[]any(nil), Array(), nil},
+		{[]any{}, Array(), nil},
+		{[]any{"test"}, Array(Text("test")), nil},
+		{[]any{"test", int8(127)}, Array(Text("test"), Int(127)), nil},
+		{
+			[]any{"test", int8(127), []int16{32767}},
+			Array(Text("test"), Int(127), Array(Int(32767))),
+			nil,
+		},
+
+		{map[string]any(nil), Object(), nil},
+		{map[string]any{}, Object(), nil},
+		{
+			map[string]any{"test": int32(2147483647)},
+			Object(KV{Text("test"), Int(2147483647)}),
+			nil,
+		},
+		{
+			map[string]any{
+				"test": int32(2147483647),
+				"a":    []any{"test"},
+			},
+			Object(
+				KV{Text("test"), Int(2147483647)},
+				KV{Text("a"), Array(Text("test"))},
+			),
+			nil,
+		},
+
+		{func() {}, nil, conversionError(reflect.Func.String(), "Value")},
+	}
+
+	for _, test := range tests {
+		v, err := Of(test.value)
+
+		if test.expectedError != nil {
+			assert.EqualError(t, err, test.expectedError.Error())
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, test.expectedValue, v)
+		}
 	}
 }
