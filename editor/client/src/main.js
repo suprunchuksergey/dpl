@@ -4,7 +4,7 @@ import "/public/wasm_exec.js";
 import { Chart, registerables } from "chart.js";
 
 const go = new Go();
-WebAssembly.instantiateStreaming(fetch("/dpl.wasm"), go.importObject).then(
+WebAssembly.instantiateStreaming(fetch("./dpl.wasm"), go.importObject).then(
   (result) => {
     go.run(result.instance);
     run.click();
