@@ -2,9 +2,10 @@ package dpl
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/suprunchuksergey/dpl/internal/value"
-	"testing"
 )
 
 func Test_Exec(t *testing.T) {

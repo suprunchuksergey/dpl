@@ -4,13 +4,12 @@ import "/public/wasm_exec.js";
 import { Chart, registerables } from "chart.js";
 
 const go = new Go();
-WebAssembly.instantiateStreaming(
-  fetch("/public/dpl.wasm"),
-  go.importObject,
-).then((result) => {
-  go.run(result.instance);
-  run.click()
-});
+WebAssembly.instantiateStreaming(fetch("/dpl.wasm"), go.importObject).then(
+  (result) => {
+    go.run(result.instance);
+    run.click();
+  },
+);
 
 document.querySelector("#app").innerHTML = `
     <div class="h-screen w-screen bg-blue-50 flex gap-x-3 p-3">
