@@ -9,6 +9,7 @@ WebAssembly.instantiateStreaming(
   go.importObject,
 ).then((result) => {
   go.run(result.instance);
+  run.click()
 });
 
 document.querySelector("#app").innerHTML = `
@@ -89,21 +90,41 @@ monaco.editor.defineTheme("dpl", {
 });
 
 const editor = monaco.editor.create(document.getElementById("editor"), {
-  value: `data = [
-    { "date": "Январь 2025", "sales": 120, "visits": 300 },
-    { "date": "Февраль 2025", "sales": 150, "visits": 450 },
-    { "date": "Март 2025", "sales": 200, "visits": 600 },
-    { "date": "Апрель 2025", "sales": 180, "visits": 500 },
-    { "date": "Май 2025", "sales": 250, "visits": 700 }
-];
+  value: `power = (base, exponent) -> {
+    if exponent == 0 { return 1 };
+    if exponent == 1 { return base };
+    return base * power(base, exponent - 1)
+};
+
+println("подготовка данных");
+
+data = [];
+
+for i in 12 {
+    data = append(
+        data,
+        {
+            "число": i,
+            "треугольные числа": i * (i + 1) / 2,
+            "чередование с ростом": i + power(-1, i),
+            "пентагональные числа": (3 * power(i, 2) - i) / 2,
+        }
+    )
+};
+
+println("рендеринг данных");
 
 draw(
-    "bar",
+    "line",
     data,
     {
-        "id": "date",
-        "values": ["sales", "visits"],
-        "title": "График",
+        "id": "число",
+        "values": [
+            "треугольные числа",
+            "чередование с ростом", 
+            "пентагональные числа",
+        ],
+        "title": "Сравнение математических последовательностей",
     }
 );
 `,
